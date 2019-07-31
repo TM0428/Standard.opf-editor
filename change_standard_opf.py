@@ -63,7 +63,7 @@ def change_standard_opf(path,title,title_yomi,author1,author1_yomi,author2,autho
         elif line.startswith('<meta refines="#creator01" property="file-as">') and not i_author1 and not i_author2:
             text = '<meta refines="#creator01" property="file-as">' + author1_yomi + '</meta>\n'
             lines_kai.append(text)
-        elif line.startswith('<dc:publisher id="publisher">')and not i_publisher:
+        elif line.startswith('<dc:publisher id="publisher">') and not i_publisher:
             text = '<dc:publisher id="publisher">' + publisher + '</dc:publisher>\n'
             lines_kai.append(text)
         elif line.startswith('<dc:language>'):
