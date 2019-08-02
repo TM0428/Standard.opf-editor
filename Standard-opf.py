@@ -88,7 +88,7 @@ class MainWindow(QMainWindow):
         QMessageBox.question(self, "Message", "Epubを作成しました", QMessageBox.Ok, QMessageBox.Ok)
 
     def versiontab(self):
-        QMessageBox.question(self, "Version", "0.0.4 beta" + UI.access(), QMessageBox.Ok, QMessageBox.Ok)
+        QMessageBox.question(self, "Version", "0.0.5 beta", QMessageBox.Ok, QMessageBox.Ok)
 
 def unzip(dirpass,filepass):
     with zipfile.ZipFile(filepass,'r') as inputFile:
