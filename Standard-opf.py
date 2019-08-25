@@ -249,7 +249,7 @@ class UI(QWidget):
                 publisher_yomi = l_publisher[0]
                 publisher_yomi = publisher_yomi.replace('<meta refines="#publisher" property="file-as">', '').replace('</meta>', '')
             else:
-                publisher = ""
+                publisher_yomi = ""
 
             #####################
 
