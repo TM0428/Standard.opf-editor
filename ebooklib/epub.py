@@ -693,6 +693,22 @@ class EpubBook(object):
 
         return self.metadata[namespace].get(name, [])
 
+    #########################
+    
+    def get_refinedata(self, refines):
+        namespace = 'http://www.idpf.org/2007/opf'
+        metadatas = self.metadata[namespace].get(None, [])
+        refine = []
+        for metadata in metadatas:
+            data = metadata[1].get('refines',[])
+            if data != []:
+                data = data.strip("#")
+                if data == refines:
+                    refine.append(metadata)
+        return refine
+
+    #########################
+
     def set_unique_metadata(self, namespace, name, value, others=None):
         "Add metadata if metadata with this identifier does not already exist, otherwise update existing metadata."
 
