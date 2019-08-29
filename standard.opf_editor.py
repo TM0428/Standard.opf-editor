@@ -14,6 +14,10 @@ text_dir = os.getcwd()
 
 class Maindata:
     title = ""
+    creator01 = ""
+    creator02 = ""
+    publisher = ""
+    description = ""
 
 
 # メインとなるウィンドウ
@@ -109,10 +113,10 @@ class UI(QWidget):
         standard_opf = QLabel("Standard.opf...", self)
         title_label = QLabel("タイトル", self)
         title_label2 = QLabel("タイトル(カタカナ)", self)
-        author_label1 = QLabel("著者名1", self)
-        author_label1_2 = QLabel("著者名1(カタカナ)", self)
-        author_label2 = QLabel("著者名2", self)
-        author_label2_2 = QLabel("著者名2(カタカナ)", self)
+        creator01_label = QLabel("著者名1", self)
+        creator01_label_2 = QLabel("著者名1(カタカナ)", self)
+        creator02_label = QLabel("著者名2", self)
+        creator02_label_2 = QLabel("著者名2(カタカナ)", self)
         publisher_label = QLabel("出版社", self)
         publisher_label2 = QLabel("出版社(カタカナ)", self)
         description_label = QLabel("あらすじ", self)
@@ -122,10 +126,10 @@ class UI(QWidget):
         self.title_text.textChanged[str].connect(self.onChanged)
         self.title_text.setText("hoge")
         self.title_yomi_text = QLineEdit(self)
-        self.author1_text = QLineEdit(self)
-        self.author1_yomi_text = QLineEdit(self)
-        self.author2_text = QLineEdit(self)
-        self.author2_yomi_text = QLineEdit(self)
+        self.creator01_text = QLineEdit(self)
+        self.creator01_yomi_text = QLineEdit(self)
+        self.creator02_text = QLineEdit(self)
+        self.creator02_yomi_text = QLineEdit(self)
         self.publisher_text = QLineEdit(self)
         self.publisher_yomi_text = QLineEdit(self)
         self.description_text = QTextEdit(self)
@@ -142,10 +146,10 @@ class UI(QWidget):
         layout.addWidget(standard_opf,0,0)
         layout.addWidget(title_label,1,0)
         layout.addWidget(title_label2,2,0)
-        layout.addWidget(author_label1,3,0)
-        layout.addWidget(author_label1_2,4,0)
-        layout.addWidget(author_label2,5,0)
-        layout.addWidget(author_label2_2,6,0)
+        layout.addWidget(creator01_label,3,0)
+        layout.addWidget(creator01_label_2,4,0)
+        layout.addWidget(creator02_label,5,0)
+        layout.addWidget(creator02_label_2,6,0)
         layout.addWidget(publisher_label,7,0)
         layout.addWidget(publisher_label2,8,0)
         layout.addWidget(description_label,9,0)
@@ -153,10 +157,10 @@ class UI(QWidget):
         layout.addWidget(self.button_pass,0,3)
         layout.addWidget(self.title_text,1,1,1,3)
         layout.addWidget(self.title_yomi_text,2,1,1,3)
-        layout.addWidget(self.author1_text,3,1,1,3)
-        layout.addWidget(self.author1_yomi_text,4,1,1,3)
-        layout.addWidget(self.author2_text,5,1,1,3)
-        layout.addWidget(self.author2_yomi_text,6,1,1,3)
+        layout.addWidget(self.creator01_text,3,1,1,3)
+        layout.addWidget(self.creator01_yomi_text,4,1,1,3)
+        layout.addWidget(self.creator02_text,5,1,1,3)
+        layout.addWidget(self.creator02_yomi_text,6,1,1,3)
         layout.addWidget(self.publisher_text,7,1,1,3)
         layout.addWidget(self.publisher_yomi_text,8,1,1,3)
         layout.addWidget(self.description_text,9,1,1,3)
@@ -178,29 +182,52 @@ class UI(QWidget):
         if path != "":
             book = epub.read_epub(path)
 
-            ######################
+            #creatorは原則二人まで、title,publisher,descriptionは一つしかないという前提で動作を行う
 
             l_title = book.get_metadata('DC', 'title')
             if l_title != []:
-                title = l_title[0][0]
+                maindata.title = l_title[0][0]
             else:
-                title = ""
+                maindata.title = ""
+            creators = book.get_metadata("DC", "creator")
+            for creator in creators:
+                if maindata.creator01 == "":
+                    maindata.creator01 = creator[0]
+                else:
+                    maindata.creator02 = creator[0]
+            l_publisher = book.get_metadata("DC", "publisher")
+            if l_publisher != []:
+                maindata.publisher = l_publisher[0][0]
+            else:
+                maindata.publisher = ""
+            l_description = book.get_metadata("DC", "description")
+            if l_description != []:
+                maindata.description = l_description[0][0]
+            else:
+                maindata.description = ""
+            
 
 
-            self.title_text.setText(title)
+
+            self.title_text.setText(maindata.title)
+            self.creator01_text.setText(maindata.creator01)
+            self.creator02_text.setText(maindata.creator02)
+            self.publisher_text.setText(maindata.publisher)
+            self.description_text.setText(maindata.description)
+
     
     def change(self):
         path = self.standard_opf_text.text()
         title = self.title_text.text()
         title_yomi = self.title_yomi_text.text()
-        author1 = self.author1_text.text()
-        author1_yomi = self.author1_yomi_text.text()
-        author2 = self.author2_text.text()
-        author2_yomi = self.author2_yomi_text.text()
+        creator1 = self.creator01_text.text()
+        creator1_yomi = self.creator01_yomi_text.text()
+        creator2 = self.creator02_text.text()
+        creator2_yomi = self.creator02_yomi_text.text()
         publisher = self.publisher_text.text()
         publisher_yomi = self.publisher_yomi_text.text()
         description = self.description_text.toPlainText()
-        change_standard_opf.change_standard_opf(path,title,title_yomi,author1,author1_yomi,author2,author2_yomi,publisher,publisher_yomi,description)
+        change_standard_opf.change_standard_opf(path,title,title_yomi,creator1,creator1_yomi,creator2,creator2_yomi,publisher,publisher_yomi,description)
         QMessageBox.question(self, "Message", "Changed!!", QMessageBox.Ok, QMessageBox.Ok)
     def search_kobo(self):
         title = self.title_text.text()
