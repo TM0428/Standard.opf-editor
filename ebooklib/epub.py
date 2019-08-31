@@ -613,7 +613,34 @@ class EpubBook(object):
 
         self.title = title
 
-        self.add_metadata('DC', 'title', self.title)
+        self.change_metadata('DC', 'title', self.title, {'id': 'title'})
+    
+    def change_metadata(self, namespace, name, value, others=None):
+        "Change metadata"
+
+        if namespace in NAMESPACES:
+            namespace = NAMESPACES[namespace]
+
+        if namespace not in self.metadata:
+            self.metadata[namespace] = {}
+
+        self.metadata[namespace][name] = []
+
+        self.metadata[namespace][name].append((value, others))
+
+    def reset_metadata(self, namespace, name):
+        "reset all namespace data"
+
+        if namespace in NAMESPACES:
+            namespace = NAMESPACES[namespace]
+
+        if namespace not in self.metadata:
+            self.metadata[namespace] = {}
+
+        self.metadata[namespace][name] = []
+
+
+
 
     def set_language(self, lang):
         """
@@ -694,8 +721,8 @@ class EpubBook(object):
         return self.metadata[namespace].get(name, [])
 
     #########################
-    
-    def get_refinedata(self, refines):
+
+    def get_refinedata(self, refines, prop=None):
         namespace = 'http://www.idpf.org/2007/opf'
         metadatas = self.metadata[namespace].get(None, [])
         refine = []
@@ -703,7 +730,12 @@ class EpubBook(object):
             data = metadata[1].get('refines',[])
             if data != []:
                 data = data.strip("#")
-                if data == refines:
+                if prop:
+                    if data == refines:
+                        data = metadata[1].get("property")
+                        if data == prop:
+                            refine.append(metadata[0])
+                elif data == refines:
                     refine.append(metadata)
         return refine
 
@@ -1397,6 +1429,10 @@ class EpubReader(object):
         self.opf_file = ''
         self.opf_dir = ''
 
+        #####
+        self.meta_file = []
+        #####
+
         self.options = dict(self.DEFAULT_OPTIONS)
         if options:
             self.options.update(options)
@@ -1451,7 +1487,7 @@ class EpubReader(object):
         default_ns = nstags.get(None, '')
 
         nsdict = dict((v, {}) for v in nsmap.values())
-
+        #print(nsdict)
         def add_item(ns, tag, value, extra):
             if ns not in nsdict:
                 nsdict[ns] = {}
@@ -1459,7 +1495,9 @@ class EpubReader(object):
             values = nsdict[ns].setdefault(tag, [])
             values.append((value, extra))
 
+        #self.meta_file = metadata
         for t in metadata:
+            self.meta_file.append(t)
             if not etree.iselement(t) or t.tag is etree.Comment:
                 continue
             if t.tag == default_ns + 'meta':
@@ -1483,7 +1521,7 @@ class EpubReader(object):
 
                 others = dict((k, v) for k, v in t.items())
                 add_item(t.nsmap[t.prefix], tag, t.text, others)
-
+        #print(nsdict)
         self.book.metadata = nsdict
 
         titles = self.book.get_metadata('DC', 'title')
@@ -1760,3 +1798,30 @@ def read_epub(name, options=None):
     reader.process()
 
     return book
+
+def change_epub(name, book, options=None):
+    """
+    this is only change epub metadata.
+    >>> ebooklib.change_epub("book.epub", book)
+    book.epub and book is SAME file
+    """
+    reader = EpubReader(name, options)
+    # book.metadata includes any metadata.
+    # reader.opf_file and reader.opf_dir
+    reader._load()
+    #print(reader.meta_file)
+    try:
+        zf = zipfile.ZipFile(name, 'r', compression=zipfile.ZIP_DEFLATED, allowZip64=True)
+    except zipfile.BadZipfile as bz:
+        raise EpubException(0, 'Bad Zip file')
+    except zipfile.LargeZipFile as bz:
+        raise EpubException(1, 'Large Zip file')
+    #name = zip_path.normpath(reader.opf_file)
+    with zf.open(reader.opf_file) as myfile:
+        s = myfile.readlines()
+        print(s)
+        #print(myfile.read())
+    #s = zf.read(reader.opf_file,"utf_8")
+    #print(s)
+    zf.close()
+    #print(reader.opf_file)
