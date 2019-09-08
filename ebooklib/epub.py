@@ -1819,9 +1819,11 @@ def change_epub(name, book, options=None):
     #name = zip_path.normpath(reader.opf_file)
     with zf.open(reader.opf_file) as myfile:
         s = myfile.readlines()
-        print(s)
-        #print(myfile.read())
-    #s = zf.read(reader.opf_file,"utf_8")
-    #print(s)
+        contents = []
+        for i in s:
+            contents.append(i.decode(encoding='utf-8'))
+        del s
+    print(book.get_metadata("DC","creator"))
     zf.close()
-    #print(reader.opf_file)
+    #contents is the raw file contents.opf
+    

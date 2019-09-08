@@ -14,10 +14,15 @@ text_dir = os.getcwd()
 
 class Maindata:
     title = ""
+    title_yomi = ""
     creator01 = ""
+    creator01_yomi = ""
     creator02 = ""
+    creator02_yomi = ""
     publisher = ""
+    publisher_yomi = ""
     description = ""
+
 
 
 # メインとなるウィンドウ
@@ -187,17 +192,38 @@ class UI(QWidget):
             l_title = book.get_metadata('DC', 'title')
             if l_title != []:
                 maindata.title = l_title[0][0]
+                # titleのカタカナ読みを実装
+                id = l_title[0][1].get("id")
+                refine = book.get_refinedata(id, "file-as")
+                if refine != []:
+                    maindata.title_yomi = refine[0]
+
             else:
                 maindata.title = ""
             creators = book.get_metadata("DC", "creator")
             for creator in creators:
                 if maindata.creator01 == "":
                     maindata.creator01 = creator[0]
+                    # creatorのカタカナ読みを実装
+                    id = creator[1].get("id")
+                    refine = book.get_refinedata(id, "file-as")
+                    if refine != []:
+                        maindata.creator01_yomi = refine[0]
                 else:
                     maindata.creator02 = creator[0]
+                    # creatorのカタカナ読みを実装
+                    id = creator[1].get("id")
+                    refine = book.get_refinedata(id, "file-as")
+                    if refine != []:
+                        maindata.creator02_yomi = refine[0]
             l_publisher = book.get_metadata("DC", "publisher")
             if l_publisher != []:
                 maindata.publisher = l_publisher[0][0]
+                # publisherのカタカナ読みを実装
+                id = l_publisher[0][1].get("id")
+                refine = book.get_refinedata(id, "file-as")
+                if refine != []:
+                    maindata.publisher_yomi = refine[0]
             else:
                 maindata.publisher = ""
             l_description = book.get_metadata("DC", "description")
@@ -206,29 +232,45 @@ class UI(QWidget):
             else:
                 maindata.description = ""
             
+            #読み仮名に関して、現在誠意製作中
 
-
-
+            self.standard_opf_text.setText(path)
             self.title_text.setText(maindata.title)
+            self.title_yomi_text.setText(maindata.title_yomi)
             self.creator01_text.setText(maindata.creator01)
+            self.creator01_yomi_text.setText(maindata.creator01_yomi)
             self.creator02_text.setText(maindata.creator02)
+            self.creator02_yomi_text.setText(maindata.creator02_yomi)
             self.publisher_text.setText(maindata.publisher)
+            self.publisher_yomi_text.setText(maindata.publisher_yomi)
             self.description_text.setText(maindata.description)
 
     
     def change(self):
         path = self.standard_opf_text.text()
-        title = self.title_text.text()
-        title_yomi = self.title_yomi_text.text()
-        creator1 = self.creator01_text.text()
-        creator1_yomi = self.creator01_yomi_text.text()
-        creator2 = self.creator02_text.text()
-        creator2_yomi = self.creator02_yomi_text.text()
-        publisher = self.publisher_text.text()
-        publisher_yomi = self.publisher_yomi_text.text()
-        description = self.description_text.toPlainText()
-        change_standard_opf.change_standard_opf(path,title,title_yomi,creator1,creator1_yomi,creator2,creator2_yomi,publisher,publisher_yomi,description)
+        maindata.title = self.title_text.text()
+        maindata.title_yomi = self.title_yomi_text.text()
+        maindata.creator01 = self.creator01_text.text()
+        maindata.creator01_yomi = self.creator01_yomi_text.text()
+        maindata.creator02 = self.creator02_text.text()
+        maindata.creator02_yomi = self.creator02_yomi_text.text()
+        maindata.publisher = self.publisher_text.text()
+        maindata.publisher_yomi = self.publisher_yomi_text.text()
+        maindata.description = self.description_text.toPlainText()
+        book = epub.read_epub(path)
+        book.set_title(maindata.title)
+        if maindata.creator01_yomi == "":
+            file_as = None
+        else:
+            file_as = maindata.creator01_yomi
+        book.reset_metadata("DC","creator")
+        book.add_author(maindata.creator01,file_as,"aut","creator01")
+
+        epub.write_epub(path, book, {})
+
+        #change_standard_opf.change_standard_opf(path,title,title_yomi,creator1,creator1_yomi,creator2,creator2_yomi,publisher,publisher_yomi,description)
         QMessageBox.question(self, "Message", "Changed!!", QMessageBox.Ok, QMessageBox.Ok)
+
     def search_kobo(self):
         title = self.title_text.text()
         b = bytes (title, 'eucjp')
