@@ -1799,6 +1799,18 @@ def read_epub(name, options=None):
 
     return book
 
+def make_xml(name, title, id=None, refines=None, prop=None):
+    xml = "<" + name
+    if id:
+        xml += ' id="' + id + '"'
+    if refines:
+        xml += ' refines="' + refines + '"'
+    if prop:
+        xml += ' property="' + prop + '"'
+    xml += '>' + title + '</' + name + '>\n'
+    return xml
+        
+
 def change_epub(name, book, options=None):
     """
     this is only change epub metadata.
@@ -1817,13 +1829,31 @@ def change_epub(name, book, options=None):
     except zipfile.LargeZipFile as bz:
         raise EpubException(1, 'Large Zip file')
     #name = zip_path.normpath(reader.opf_file)
+    manifest = False
     with zf.open(reader.opf_file) as myfile:
         s = myfile.readlines()
-        contents = []
+        contents = ['<?xml version="1.0" encoding="UTF-8"?><package xmlns="http://www.idpf.org/2007/opf" version="3.0" xml:lang="ja" unique-identifier="unique-id" prefix="rendition: http://www.idpf.org/vocab/rendition/#          ebpaj: http://www.ebpaj.jp/          fixed-layout-jp: http://www.digital-comic.jp/          ibooks: http://vocabulary.itunes.apple.com/rdf/ibooks/vocabulary-extensions-1.0/">\n'
+        ,'\n','<metadata xmlns:dc="http://purl.org/dc/elements/1.1/">','\n']
+        #titleの追加
+        title = book.get_metadata('DC','title')
+        if title != []:
+            contents.append('<!-- 作品名 -->\n')
+
+            print(title)
+
+        creators = book.get_metadata('DC', 'creator')
+        
+
         for i in s:
-            contents.append(i.decode(encoding='utf-8'))
+            x = i.decode(encoding='utf-8')
+            if x.find("<manifest>") != -1:
+                manifest = True
+            if manifest:
+                contents.append(x)
         del s
-    print(book.get_metadata("DC","creator"))
+    print(book.get_refinedata("creator"))
+    print(book.direction)
+    #print(contents)
     zf.close()
     #contents is the raw file contents.opf
     
