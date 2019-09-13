@@ -52,7 +52,7 @@ CONTAINER_PATH = 'META-INF/container.xml'
 CONTAINER_XML = '''<?xml version='1.0' encoding='utf-8'?>
 <container xmlns="urn:oasis:names:tc:opendocument:xmlns:container" version="1.0">
   <rootfiles>
-    <rootfile media-type="application/oebps-package+xml" full-path="%(folder_name)s/content.opf"/>
+    <rootfile media-type="application/oebps-package+xml" full-path="%(folder_name)s/standard.opf"/>
   </rootfiles>
 </container>
 '''
@@ -563,7 +563,7 @@ class EpubBook(object):
         self.bindings = []
 
         self.IDENTIFIER_ID = 'id'
-        self.FOLDER_NAME = 'EPUB'
+        self.FOLDER_NAME = 'item'
 
         self._id_html = 0
         self._id_image = 0
@@ -587,7 +587,7 @@ class EpubBook(object):
         # default to using a randomly-unique identifier if one is not specified manually
         self.set_identifier(str(uuid.uuid4()))
 
-        # custom prefixes and namespaces to be set to the content.opf doc
+        # custom prefixes and namespaces to be set to the standard.opf doc
         self.prefixes = []
         self.namespaces = {}
 
@@ -893,7 +893,7 @@ class EpubBook(object):
 
     def add_prefix(self, name, uri):
         """
-        Appends custom prefix to be added to the content.opf document
+        Appends custom prefix to be added to the standard.opf document
 
         >>> epub_book.add_prefix('bkterms', 'http://booktype.org/')
 
@@ -1127,7 +1127,7 @@ class EpubWriter(object):
     def _write_opf_file(self, root):
         tree_str = etree.tostring(root, pretty_print=True, encoding='utf-8', xml_declaration=True)
 
-        self.out.writestr('%s/content.opf' % self.book.FOLDER_NAME, tree_str)
+        self.out.writestr('%s/standard.opf' % self.book.FOLDER_NAME, tree_str)
 
     def _write_opf(self):
         package_attributes = {'xmlns': NAMESPACES['OPF'],
@@ -1414,6 +1414,15 @@ class EpubWriter(object):
         self._write_container()
         self._write_opf()
         self._write_items()
+
+        self.out.close()
+
+    def write_opf(self):
+        # check for the option allowZip64
+        self.out = zipfile.ZipFile(self.file_name, 'w', zipfile.ZIP_DEFLATED)
+        self.out.writestr('mimetype', 'application/epub+zip', compress_type=zipfile.ZIP_STORED)
+
+        self._write_opf()
 
         self.out.close()
 
@@ -1798,7 +1807,7 @@ def read_epub(name, options=None):
     reader.process()
 
     return book
-
+"""
 def make_xml(name, title, id=None, refines=None, prop=None):
     xml = "<" + name
     if id:
@@ -1809,6 +1818,7 @@ def make_xml(name, title, id=None, refines=None, prop=None):
         xml += ' property="' + prop + '"'
     xml += '>' + title + '</' + name + '>\n'
     return xml
+    """
         
 
 def change_epub(name, book, options=None):
@@ -1816,6 +1826,11 @@ def change_epub(name, book, options=None):
     this is only change epub metadata.
     >>> ebooklib.change_epub("book.epub", book)
     book.epub and book is SAME file
+    """
+    epub = EpubWriter(name, book, options)
+    epub.write_opf()
+    #spine = book.container.find('{%s}%s' % (NAMESPACES['OPF'], 'spine'))
+    #print(spine)
     """
     reader = EpubReader(name, options)
     # book.metadata includes any metadata.
@@ -1829,6 +1844,7 @@ def change_epub(name, book, options=None):
     except zipfile.LargeZipFile as bz:
         raise EpubException(1, 'Large Zip file')
     #name = zip_path.normpath(reader.opf_file)
+    
     manifest = False
     with zf.open(reader.opf_file) as myfile:
         s = myfile.readlines()
@@ -1852,8 +1868,10 @@ def change_epub(name, book, options=None):
                 contents.append(x)
         del s
     print(book.get_refinedata("creator"))
-    print(book.direction)
+    print(book.metadata)
     #print(contents)
     zf.close()
     #contents is the raw file contents.opf
     
+
+"""
