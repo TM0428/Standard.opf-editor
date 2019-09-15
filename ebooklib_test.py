@@ -4,13 +4,13 @@ import ebooklib
 from ebooklib import epub
 
 book = epub.read_epub('./デート・ア・ライブ　アンコール1.epub')
-
+"""
 titles = book.get_metadata('DC', 'title')
 creator = book.get_metadata('DC', 'creator')
 publisher = book.get_metadata('DC', 'publisher')
 language = book.get_metadata('DC', 'language')
 metas = book.get_metadata('OPF', None)
-
+"""
 epub.change_epub('./デート・ア・ライブ　アンコール1.epub',book, {})
 
 #print(creator) # 執筆者

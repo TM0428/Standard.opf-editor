@@ -1406,6 +1406,17 @@ class EpubWriter(object):
             else:
                 self.out.writestr('%s' % item.file_name, item.get_content())
 
+    def _write_items_kai(self):
+        for item in self.book.get_items():
+            if isinstance(item, EpubNcx):
+                self.out.writestr('%s/%s' % (self.book.FOLDER_NAME, item.file_name), item.get_content())
+            elif isinstance(item, EpubNav):
+                self.out.writestr('%s/%s' % (self.book.FOLDER_NAME, item.file_name), item.get_content())
+            elif item.manifest:
+                self.out.writestr('%s/%s' % (self.book.FOLDER_NAME, item.file_name), item.get_content())
+            else:
+                self.out.writestr('%s' % item.file_name, item.get_content())
+
     def write(self):
         # check for the option allowZip64
         self.out = zipfile.ZipFile(self.file_name, 'w', zipfile.ZIP_DEFLATED)
@@ -1419,12 +1430,20 @@ class EpubWriter(object):
 
     def write_opf(self):
         # check for the option allowZip64
+        #self.out = zipfile.ZipFile(self.file_name, 'a', zipfile.ZIP_DEFLATED)
+        #?
+        #self.out.writestr('mimetype', 'application/epub+zip', compress_type=zipfile.ZIP_STORED)
+
+        #with self.out.open(opf_file) as myfile:
         self.out = zipfile.ZipFile(self.file_name, 'w', zipfile.ZIP_DEFLATED)
         self.out.writestr('mimetype', 'application/epub+zip', compress_type=zipfile.ZIP_STORED)
 
+        self._write_container()
         self._write_opf()
+        self._write_items_kai()
 
         self.out.close()
+
 
 
 class EpubReader(object):
