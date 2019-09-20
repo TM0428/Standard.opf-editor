@@ -636,7 +636,21 @@ class EpubBook(object):
 
         if namespace not in self.metadata:
             self.metadata[namespace] = {}
-
+        else:
+            idx = self.metadata[namespace].get(name, [])
+            print(idx)
+            _id = self.metadata[namespace].get(name, [])[0][1].get('id')
+            metadatas = self.metadata[NAMESPACES['OPF']].get(None, [])
+            refine = []
+            for metadata in metadatas:
+                data = metadata[1].get('refines',[])
+                if data != []:
+                    data = data.strip("#")
+                    if data == _id:
+                        continue
+                refine.append(metadata)
+            metadatas = refine
+            print(metadatas)
         self.metadata[namespace][name] = []
 
 
