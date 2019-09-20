@@ -196,7 +196,7 @@ class EpubItem(object):
         :Returns:
           Returns content of the item.
         """
-        return self.content or default
+        return self.content# or default
 
     def set_content(self, content):
         """
@@ -1063,13 +1063,15 @@ class EpubWriter(object):
             # later we should be able to fetch things from tuple
 
             is_linear = True
-
+            is_property = False
             if isinstance(_item, tuple):
                 item = _item[0]
 
                 if len(_item) > 1:
                     if _item[1] == 'no':
                         is_linear = False
+                if len(_item) > 2 and _item[2] != None:
+                    is_property = True
             else:
                 item = _item
 
@@ -1078,11 +1080,15 @@ class EpubWriter(object):
 
                 if not item.is_linear or not is_linear:
                     opts['linear'] = 'no'
+                else:
+                    opts['linear'] = 'yes'
             elif isinstance(item, EpubItem):
                 opts = {'idref': item.get_id()}
 
                 if not item.is_linear or not is_linear:
                     opts['linear'] = 'no'
+                else:
+                    opts['linear'] = 'yes'
             else:
                 opts = {'idref': item}
 
@@ -1091,9 +1097,12 @@ class EpubWriter(object):
 
                     if not itm.is_linear or not is_linear:
                         opts['linear'] = 'no'
+                    else:
+                        opts['linear'] = 'yes'
                 except:
                     pass
-
+            if is_property:
+                opts['properties'] = _item[2]
             etree.SubElement(spine, 'itemref', opts)
 
     def _write_opf_guide(self, root):
@@ -1407,6 +1416,17 @@ class EpubWriter(object):
                 self.out.writestr('%s' % item.file_name, item.get_content())
 
     def _write_items_kai(self):
+        for item in self.book.items:
+            if isinstance(item, EpubNcx):
+                self.out.writestr('%s/%s' % (self.book.FOLDER_NAME, item.file_name), item.content)
+            elif isinstance(item, EpubNav):
+                self.out.writestr('%s/%s' % (self.book.FOLDER_NAME, item.file_name), item.content)
+            elif item.manifest:
+                self.out.writestr('%s/%s' % (self.book.FOLDER_NAME, item.file_name), item.content)
+            else:
+                self.out.writestr('%s' % item.file_name, item.content)
+
+        """
         for item in self.book.get_items():
             if isinstance(item, EpubNcx):
                 self.out.writestr('%s/%s' % (self.book.FOLDER_NAME, item.file_name), item.get_content())
@@ -1416,6 +1436,7 @@ class EpubWriter(object):
                 self.out.writestr('%s/%s' % (self.book.FOLDER_NAME, item.file_name), item.get_content())
             else:
                 self.out.writestr('%s' % item.file_name, item.get_content())
+        """
 
     def write(self):
         # check for the option allowZip64
@@ -1581,6 +1602,8 @@ class EpubReader(object):
                 ei = EpubNcx(uid=r.get('id'), file_name=unquote(r.get('href')))
 
                 ei.content = self.read_file(zip_path.join(self.opf_dir, ei.file_name))
+
+            
             if media_type == 'application/smil+xml':
                 ei = EpubSMIL(uid=r.get('id'), file_name=unquote(r.get('href')))
 
@@ -1626,7 +1649,6 @@ class EpubReader(object):
                 ei.media_type = media_type
 
                 ei.content = self.read_file(zip_path.join(self.opf_dir, ei.get_name()))
-
             self.book.add_item(ei)
 
     def _parse_ncx(self, data):
@@ -1719,7 +1741,7 @@ class EpubReader(object):
     def _load_spine(self):
         spine = self.container.find('{%s}%s' % (NAMESPACES['OPF'], 'spine'))
 
-        self.book.spine = [(t.get('idref'), t.get('linear', 'yes')) for t in spine]
+        self.book.spine = [(t.get('idref'), t.get('linear', 'yes'),t.get('properties', None)) for t in spine]
 
         toc = spine.get('toc', '')
         self.book.set_direction(spine.get('page-progression-direction', None))
@@ -1732,6 +1754,7 @@ class EpubReader(object):
                 raise EpubException(-1, 'Can not find ncx file.')
 
             self._parse_ncx(ncxFile)
+        #print(self.book.spine)
 
     def _load_guide(self):
         guide = self.container.find('{%s}%s' % (NAMESPACES['OPF'], 'guide'))
@@ -1778,7 +1801,6 @@ class EpubReader(object):
         # 1st check metadata
         self._load_container()
         self._load_opf_file()
-
         self.zf.close()
 
 
@@ -1847,7 +1869,18 @@ def change_epub(name, book, options=None):
     book.epub and book is SAME file
     """
     epub = EpubWriter(name, book, options)
+
+    """
+    for b in book.items:
+        if isinstance(b, EpubHtml):
+            print(b.content)
+        print(type(b))
+    """
+
     epub.write_opf()
+    
+    
+    
     #spine = book.container.find('{%s}%s' % (NAMESPACES['OPF'], 'spine'))
     #print(spine)
     """

@@ -11,6 +11,7 @@ publisher = book.get_metadata('DC', 'publisher')
 language = book.get_metadata('DC', 'language')
 metas = book.get_metadata('OPF', None)
 """
+print(book.metadata)
 epub.change_epub('./デート・ア・ライブ　アンコール1.epub',book, {})
 
 #print(creator) # 執筆者

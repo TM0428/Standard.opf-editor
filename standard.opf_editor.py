@@ -266,7 +266,7 @@ class UI(QWidget):
         book.reset_metadata("DC","creator")
         book.add_author(maindata.creator01,file_as,"aut","creator01")
 
-        epub.write_epub(path, book, {})
+        epub.change_epub(path, book, {})
 
         #change_standard_opf.change_standard_opf(path,title,title_yomi,creator1,creator1_yomi,creator2,creator2_yomi,publisher,publisher_yomi,description)
         QMessageBox.question(self, "Message", "Changed!!", QMessageBox.Ok, QMessageBox.Ok)
