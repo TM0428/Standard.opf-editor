@@ -11,7 +11,6 @@ import ebooklib
 from ebooklib import epub
 
 text_dir = os.getcwd()
-
 class Maindata:
     title = ""
     title_yomi = ""
@@ -24,6 +23,7 @@ class Maindata:
     description = ""
 
 
+maindata = Maindata()
 
 # メインとなるウィンドウ
 class MainWindow(QMainWindow):
@@ -247,6 +247,7 @@ class UI(QWidget):
 
     
     def change(self):
+        # get data
         path = self.standard_opf_text.text()
         maindata.title = self.title_text.text()
         maindata.title_yomi = self.title_yomi_text.text()
@@ -258,16 +259,32 @@ class UI(QWidget):
         maindata.publisher_yomi = self.publisher_yomi_text.text()
         maindata.description = self.description_text.toPlainText()
         book = epub.read_epub(path)
-        book.set_title(maindata.title)
+        # add title
+        book.reset_metadata("DC","title")
+        book.add_metadata("DC","title",maindata.title,{"id" : "title"})
+        if maindata.title_yomi != "":
+            book.add_opf_metadata(maindata.title_yomi, {"refines" : "#title",
+                                                                "property" : "file-as"})
+        # add creators
         book.reset_metadata("DC","creator")
         file_as = maindata.creator01_yomi
-        book.add_author(maindata.creator01,file_as,"aut","creator01")
+        book.add_author(maindata.creator01,file_as,"aut","1","creator01")
         file_as = maindata.creator02_yomi
-        book.add_author(maindata.creator02,file_as,"aut","creator02")
+        book.add_author(maindata.creator02,file_as,"aut","2","creator02")
+        # add publisher
+        book.reset_metadata("DC","publisher")
+        book.add_metadata("DC","publisher",maindata.publisher,{"id" : "publisher"})
+        if maindata.publisher_yomi != "":
+            book.add_opf_metadata(maindata.publisher_yomi, {"refines" : "#publisher",
+                                                                "property" : "file-as"})
+        # add description
+        book.reset_metadata("DC","description")
+        book.add_metadata("DC","description",maindata.description)
+
 
         epub.change_epub(path, book, {})
 
-        #change_standard_opf.change_standard_opf(path,title,title_yomi,creator1,creator1_yomi,creator2,creator2_yomi,publisher,publisher_yomi,description)
+        
         QMessageBox.question(self, "Message", "Changed!!", QMessageBox.Ok, QMessageBox.Ok)
 
     def search_kobo(self):
@@ -289,7 +306,7 @@ def main():
     sys.exit(app.exec_())
 
 if __name__ == "__main__":
-    maindata = Maindata()
+    
     main()
 
 

@@ -12,11 +12,13 @@ language = book.get_metadata('DC', 'language')
 metas = book.get_metadata('OPF', None)
 """
 #print(book.metadata)
-#epub.change_epub('./デート・ア・ライブ　アンコール1.epub',book, {})
-book.reset_metadata('DC', 'creator')
-#book.add_author("",None,"aut","creator01")
+print(book.metadata)
+#book.reset_metadata('DC', 'publisher')
+book.add_author("ほげお","Hogeo","aut","creator02")
+#book.add_metadata("DC","publisher",'富士見書房',{"id" : "publisher"})
 print(book.metadata)
 
+epub.change_epub('./デート・ア・ライブ　アンコール1.epub',book, {})
 
 #print(creator) # 執筆者
 #print(titles)

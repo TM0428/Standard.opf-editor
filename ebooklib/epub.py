@@ -700,20 +700,22 @@ class EpubBook(object):
 
         self.add_metadata(None, 'meta', '', OrderedDict([('name', 'cover'), ('content', 'cover-img')]))
 
-    def add_author(self, author, file_as=None, role=None, uid='creator'):
+    def add_author(self, author, file_as=None, role=None, seq=None, uid='creator'):
         "Add author for this document"
         if author == "":
             return
         self.add_metadata('DC', 'creator', author, {'id': uid})
-
         if file_as and file_as != "":
-            self.add_metadata(None, 'meta', file_as, {'refines': '#' + uid,
+            self.add_opf_metadata(file_as, {'refines': '#' + uid,
                                                       'property': 'file-as',
                                                       'scheme': 'marc:relators'})
         if role:
-            self.add_metadata(None, 'meta', role, {'refines': '#' + uid,
+            self.add_opf_metadata(role, {'refines': '#' + uid,
                                                    'property': 'role',
                                                    'scheme': 'marc:relators'})
+        if seq:
+            self.add_opf_metadata(seq, {'refines': '#' + uid,
+                                                   'property': 'display-seq'})
 
     def add_metadata(self, namespace, name, value, others=None):
         "Add metadata"
@@ -728,6 +730,18 @@ class EpubBook(object):
             self.metadata[namespace][name] = []
 
         self.metadata[namespace][name].append((value, others))
+    
+    def add_opf_metadata(self,value, others=None):
+        'Add "OPF" metadata'
+        namespace = NAMESPACES["OPF"]
+
+        if namespace not in self.metadata:
+            self.metadata[namespace] = {}
+
+        if None not in self.metadata[namespace]:
+            self.metadata[namespace][None] = []
+
+        self.metadata[namespace][None].append((value, others))
 
     def get_metadata(self, namespace, name):
         "Retrieve metadata"
