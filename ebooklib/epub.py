@@ -638,19 +638,21 @@ class EpubBook(object):
             self.metadata[namespace] = {}
         else:
             idx = self.metadata[namespace].get(name, [])
-            print(idx)
-            _id = self.metadata[namespace].get(name, [])[0][1].get('id')
-            metadatas = self.metadata[NAMESPACES['OPF']].get(None, [])
-            refine = []
-            for metadata in metadatas:
-                data = metadata[1].get('refines',[])
-                if data != []:
-                    data = data.strip("#")
-                    if data == _id:
-                        continue
-                refine.append(metadata)
-            metadatas = refine
-            print(metadatas)
+            for x in idx:
+                _id = x[1].get('id')
+                metadatas = self.metadata[NAMESPACES['OPF']].get(None, [])
+                refine = []
+                for metadata in metadatas:
+                    Append = True
+                    data = metadata[1].get('refines',[])
+                    if data != []:
+                        data = data.strip("#")
+                        if data == _id:
+                            Append = False
+                    if Append:
+                        refine.append(metadata)
+                self.metadata[NAMESPACES['OPF']][None] = refine
+
         self.metadata[namespace][name] = []
 
 
@@ -700,10 +702,11 @@ class EpubBook(object):
 
     def add_author(self, author, file_as=None, role=None, uid='creator'):
         "Add author for this document"
-
+        if author == "":
+            return
         self.add_metadata('DC', 'creator', author, {'id': uid})
 
-        if file_as:
+        if file_as and file_as != "":
             self.add_metadata(None, 'meta', file_as, {'refines': '#' + uid,
                                                       'property': 'file-as',
                                                       'scheme': 'marc:relators'})

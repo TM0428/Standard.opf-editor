@@ -13,8 +13,9 @@ metas = book.get_metadata('OPF', None)
 """
 #print(book.metadata)
 #epub.change_epub('./デート・ア・ライブ　アンコール1.epub',book, {})
-print(book.get_refinedata('creator01'))
 book.reset_metadata('DC', 'creator')
+#book.add_author("",None,"aut","creator01")
+print(book.metadata)
 
 
 #print(creator) # 執筆者

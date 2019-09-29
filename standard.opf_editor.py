@@ -259,12 +259,11 @@ class UI(QWidget):
         maindata.description = self.description_text.toPlainText()
         book = epub.read_epub(path)
         book.set_title(maindata.title)
-        if maindata.creator01_yomi == "":
-            file_as = None
-        else:
-            file_as = maindata.creator01_yomi
         book.reset_metadata("DC","creator")
+        file_as = maindata.creator01_yomi
         book.add_author(maindata.creator01,file_as,"aut","creator01")
+        file_as = maindata.creator02_yomi
+        book.add_author(maindata.creator02,file_as,"aut","creator02")
 
         epub.change_epub(path, book, {})
 
