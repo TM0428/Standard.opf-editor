@@ -47,7 +47,7 @@ class MainWindow(QMainWindow):
         exitButton.setShortcut("Ctrl+Q")
         exitButton.setStatusTip("Exit application")
         exitButton.triggered.connect(self.close)
-        dirbutton = QAction(QIcon("hoge.png"), "Epubの作成", self)
+        dirbutton = QAction(QIcon("hoge.png"), "Epubの作成(Winのみ)", self)
         dirbutton.setShortcut("Ctrl+E")
         dirbutton.triggered.connect(self.dir_def)
         unepubbutton = QAction(QIcon("hoge.png"), "Epubの解凍", self)
@@ -99,7 +99,7 @@ class MainWindow(QMainWindow):
         QMessageBox.question(self, "Message", "Epubを作成しました", QMessageBox.Ok, QMessageBox.Ok)
 
     def versiontab(self):
-        QMessageBox.question(self, "Version", "0.0.5 beta", QMessageBox.Ok, QMessageBox.Ok)
+        QMessageBox.question(self, "Version", "0.1.0 beta", QMessageBox.Ok, QMessageBox.Ok)
 
 def unzip(dirpass,filepass):
     with zipfile.ZipFile(filepass,'r') as inputFile:
@@ -232,7 +232,7 @@ class UI(QWidget):
             else:
                 maindata.description = ""
             
-            #読み仮名に関して、現在誠意製作中
+            # set data
 
             self.standard_opf_text.setText(path)
             self.title_text.setText(maindata.title)
