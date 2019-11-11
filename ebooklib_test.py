@@ -3,7 +3,7 @@ import os
 import ebooklib
 from ebooklib import epub
 
-book = epub.read_epub('./デート・ア・ライブ　アンコール1.epub')
+book = epub.read_epub('./saekano1.epub')
 """
 titles = book.get_metadata('DC', 'title')
 creator = book.get_metadata('DC', 'creator')
@@ -14,11 +14,11 @@ metas = book.get_metadata('OPF', None)
 #print(book.metadata)
 print(book.metadata)
 #book.reset_metadata('DC', 'publisher')
-book.add_author("ほげお","Hogeo","aut","creator02")
+#book.add_author("ほげお","Hogeo","aut","creator02")
 #book.add_metadata("DC","publisher",'富士見書房',{"id" : "publisher"})
-print(book.metadata)
+print(book.get_refinedata("丸戸史明"))
 
-epub.change_epub('./デート・ア・ライブ　アンコール1.epub',book, {})
+#epub.change_epub('./デート・ア・ライブ　アンコール1.epub',book, {})
 
 #print(creator) # 執筆者
 #print(titles)

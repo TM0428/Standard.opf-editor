@@ -761,13 +761,11 @@ class EpubBook(object):
             data = metadata[1].get('refines',[])
             if data != []:
                 data = data.strip("#")
-                if prop:
-                    if data == refines:
-                        data = metadata[1].get("property")
-                        if data == prop:
-                            refine.append(metadata[0])
-                elif data == refines:
-                    refine.append(metadata)
+                if data == refines:
+                    if prop and metadata[1].get("property") == prop:
+                        refine.append(metadata)
+                    elif not prop:
+                        refine.append(metadata)
         return refine
 
     #########################
@@ -1909,52 +1907,3 @@ def change_epub(name, book, options=None):
     """
 
     epub.write_opf()
-    
-    
-    
-    #spine = book.container.find('{%s}%s' % (NAMESPACES['OPF'], 'spine'))
-    #print(spine)
-    """
-    reader = EpubReader(name, options)
-    # book.metadata includes any metadata.
-    # reader.opf_file and reader.opf_dir
-    reader._load()
-    #print(reader.meta_file)
-    try:
-        zf = zipfile.ZipFile(name, 'r', compression=zipfile.ZIP_DEFLATED, allowZip64=True)
-    except zipfile.BadZipfile as bz:
-        raise EpubException(0, 'Bad Zip file')
-    except zipfile.LargeZipFile as bz:
-        raise EpubException(1, 'Large Zip file')
-    #name = zip_path.normpath(reader.opf_file)
-    
-    manifest = False
-    with zf.open(reader.opf_file) as myfile:
-        s = myfile.readlines()
-        contents = ['<?xml version="1.0" encoding="UTF-8"?><package xmlns="http://www.idpf.org/2007/opf" version="3.0" xml:lang="ja" unique-identifier="unique-id" prefix="rendition: http://www.idpf.org/vocab/rendition/#          ebpaj: http://www.ebpaj.jp/          fixed-layout-jp: http://www.digital-comic.jp/          ibooks: http://vocabulary.itunes.apple.com/rdf/ibooks/vocabulary-extensions-1.0/">\n'
-        ,'\n','<metadata xmlns:dc="http://purl.org/dc/elements/1.1/">','\n']
-        #titleの追加
-        title = book.get_metadata('DC','title')
-        if title != []:
-            contents.append('<!-- 作品名 -->\n')
-
-            print(title)
-
-        creators = book.get_metadata('DC', 'creator')
-        
-
-        for i in s:
-            x = i.decode(encoding='utf-8')
-            if x.find("<manifest>") != -1:
-                manifest = True
-            if manifest:
-                contents.append(x)
-        del s
-    print(book.get_refinedata("creator"))
-    print(book.metadata)
-    #print(contents)
-    zf.close()
-    #contents is the raw file contents.opf
-    
-
-"""
