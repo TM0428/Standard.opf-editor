@@ -115,7 +115,7 @@ class UI(QWidget):
         self.initUI()
 
     def initUI(self):
-        standard_opf = QLabel("Standard.opf...", self)
+        standard_opf = QLabel("Epub...", self)
         title_label = QLabel("タイトル", self)
         title_label2 = QLabel("タイトル(カタカナ)", self)
         creator01_label = QLabel("著者名1", self)
