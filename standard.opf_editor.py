@@ -196,7 +196,7 @@ class UI(QWidget):
                 id = l_title[0][1].get("id")
                 refine = book.get_refinedata(id, "file-as")
                 if refine != []:
-                    maindata.title_yomi = refine[0]
+                    maindata.title_yomi = refine[0][0]
 
             else:
                 maindata.title = ""
@@ -208,14 +208,14 @@ class UI(QWidget):
                     id = creator[1].get("id")
                     refine = book.get_refinedata(id, "file-as")
                     if refine != []:
-                        maindata.creator01_yomi = refine[0]
+                        maindata.creator01_yomi = refine[0][0]
                 else:
                     maindata.creator02 = creator[0]
                     # creatorのカタカナ読みを実装
                     id = creator[1].get("id")
                     refine = book.get_refinedata(id, "file-as")
                     if refine != []:
-                        maindata.creator02_yomi = refine[0]
+                        maindata.creator02_yomi = refine[0][0]
             l_publisher = book.get_metadata("DC", "publisher")
             if l_publisher != []:
                 maindata.publisher = l_publisher[0][0]
@@ -223,7 +223,7 @@ class UI(QWidget):
                 id = l_publisher[0][1].get("id")
                 refine = book.get_refinedata(id, "file-as")
                 if refine != []:
-                    maindata.publisher_yomi = refine[0]
+                    maindata.publisher_yomi = refine[0][0]
             else:
                 maindata.publisher = ""
             l_description = book.get_metadata("DC", "description")
