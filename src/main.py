@@ -3,7 +3,7 @@ import os
 from PyQt6.QtWidgets import QApplication, QMainWindow, QMessageBox, QFileDialog, QDialog, QLabel, QVBoxLayout, QLineEdit, QPushButton, QHBoxLayout, QWidget, QGridLayout, QTextEdit
 from PyQt6.QtGui import QAction, QIcon
 from PyQt6.QtCore import QObject
-from typing import Final, Optional
+from typing import Final
 import qdarktheme
 
 class MainWindow(QMainWindow):
@@ -146,8 +146,11 @@ class bodyUI(QWidget):
         # self.title_text.textChanged[str].connect(self.onChanged)
         self.title_text.setPlaceholderText("鬼滅の刃")
         self.title_yomi_text = QLineEdit(self)
+        self.title_yomi_text.setPlaceholderText("キメツノヤイバ")
         self.creator01_text = QLineEdit(self)
+        self.creator01_text.setPlaceholderText("吾峠呼世晴")
         self.creator01_yomi_text = QLineEdit(self)
+        self.creator01_yomi_text.setPlaceholderText("ゴトウゲコヨハル")
         self.creator02_text = QLineEdit(self)
         self.creator02_yomi_text = QLineEdit(self)
         self.publisher_text = QLineEdit(self)
@@ -160,6 +163,8 @@ class bodyUI(QWidget):
         # self.change_button.clicked.connect(self.change)
         self.search_button = QPushButton("koboで検索...", self)
         # self.search_button.clicked.connect(self.search_kobo)
+        self.add_creator_button = QPushButton("", self)
+        self.add_creator_button.setIcon(QIcon("public/icon/add-40-32.png"))
 
         layout = QGridLayout()
         layout.setSpacing(10)
@@ -186,6 +191,7 @@ class bodyUI(QWidget):
         layout.addWidget(self.description_text, 9, 1, 1, 3)
         layout.addWidget(self.search_button, 10, 0)
         layout.addWidget(self.change_button, 10, 1, 1, 3)
+        layout.addWidget(self.add_creator_button, 11, 0, 1, 1)
         self.setLayout(layout)
 
         self.show()
