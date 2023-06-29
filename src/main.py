@@ -1,8 +1,9 @@
 import sys
 import os
-from PyQt6.QtWidgets import QApplication, QMainWindow, QMessageBox, QFileDialog, QInputDialog, QDialog, QLabel, QVBoxLayout, QLineEdit, QPushButton
+from PyQt6.QtWidgets import QApplication, QMainWindow, QMessageBox, QFileDialog, QDialog, QLabel, QVBoxLayout, QLineEdit, QPushButton, QHBoxLayout, QWidget, QGridLayout, QTextEdit
 from PyQt6.QtGui import QAction, QIcon
-from typing import Final
+from PyQt6.QtCore import QObject
+from typing import Final, Optional
 import qdarktheme
 
 class MainWindow(QMainWindow):
@@ -14,6 +15,8 @@ class MainWindow(QMainWindow):
         super().__init__()
         self.app_dir = os.getcwd()
         self.initUI()
+        ui = bodyUI(self)
+        self.setCentralWidget(ui)
 
     def initUI(self):
         # 設定
@@ -62,9 +65,14 @@ class MainWindow(QMainWindow):
         if fname == "":
             return
         pathname = os.path.basename(fname)
-        text, ok = QInputDialog.getText(self, 'Epubのファイル名を指定...', 'Epubのファイル名を指定...', text=pathname)
-        if ok:
-            t = str(text)
+        dialog = CustomDialog(self)
+        dialog.label.setText(".epub")
+        dialog.line_edit.setText(pathname)
+        result = dialog.exec()
+        if result == QDialog.DialogCode.Rejected:
+            return
+        elif result == QDialog.DialogCode.Accepted:
+            t = dialog.getText()
         else:
             t = os.path.basename(fname)
         from util import pack_epub
@@ -83,19 +91,115 @@ class MainWindow(QMainWindow):
 class CustomDialog(QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
-        layout = QVBoxLayout()
+        self.setWindowTitle("ファイル名")
+        layout1 = QVBoxLayout()
+        layout2 = QHBoxLayout()
+        layout3 = QHBoxLayout()
 
         self.label = QLabel(".epub", self)
         self.line_edit = QLineEdit(self)
-        self.button = QPushButton("OK", self)
+        self.cancel_button = QPushButton("Cancel", self)
+        self.ok_button = QPushButton("OK", self)
 
-        layout.addWidget(self.line_edit)
-        layout.addWidget(self.label)
-        layout.addWidget(self.button)
+        layout2.addWidget(self.line_edit)
+        layout2.addWidget(self.label)
 
+        layout3.addWidget(self.cancel_button)
+        layout3.addWidget(self.ok_button)
+
+        layout1.addLayout(layout2)
+        layout1.addLayout(layout3)
+
+        self.setLayout(layout1)
+
+        self.ok_button.clicked.connect(self.accept)
+        self.cancel_button.clicked.connect(self.reject)
+
+    def getText(self):
+        return self.line_edit.text()
+
+# UIを作成しているウィンドウ
+class bodyUI(QWidget):
+
+    parent: QObject = None
+
+    def __init__(self, parent=None):
+        super(bodyUI, self).__init__(parent)
+        self.parent = parent
+        self.initUI()
+
+    def initUI(self):
+        standard_opf = QLabel("Epubファイル", self)
+        title_label = QLabel("タイトル", self)
+        title_label2 = QLabel("タイトル(カタカナ)", self)
+        creator01_label = QLabel("著者名1", self)
+        creator01_label_2 = QLabel("著者名1(カタカナ)", self)
+        creator02_label = QLabel("著者名2", self)
+        creator02_label_2 = QLabel("著者名2(カタカナ)", self)
+        publisher_label = QLabel("出版社", self)
+        publisher_label2 = QLabel("出版社(カタカナ)", self)
+        description_label = QLabel("あらすじ", self)
+
+        self.epub_path_text = QLineEdit(self)
+        self.epub_path_text.setPlaceholderText("path/to/your/epub")
+        self.title_text = QLineEdit(self)
+        # self.title_text.textChanged[str].connect(self.onChanged)
+        self.title_text.setPlaceholderText("鬼滅の刃")
+        self.title_yomi_text = QLineEdit(self)
+        self.creator01_text = QLineEdit(self)
+        self.creator01_yomi_text = QLineEdit(self)
+        self.creator02_text = QLineEdit(self)
+        self.creator02_yomi_text = QLineEdit(self)
+        self.publisher_text = QLineEdit(self)
+        self.publisher_yomi_text = QLineEdit(self)
+        self.description_text = QTextEdit(self)
+
+        self.button_pass = QPushButton("パスを選択...", self)
+        self.button_pass.clicked.connect(self.ShowDialog)
+        self.change_button = QPushButton("Standard.opfを編集する", self)
+        # self.change_button.clicked.connect(self.change)
+        self.search_button = QPushButton("koboで検索...", self)
+        # self.search_button.clicked.connect(self.search_kobo)
+
+        layout = QGridLayout()
+        layout.setSpacing(10)
+        layout.addWidget(standard_opf, 0, 0)
+        layout.addWidget(title_label, 1, 0)
+        layout.addWidget(title_label2, 2, 0)
+        layout.addWidget(creator01_label, 3, 0)
+        layout.addWidget(creator01_label_2, 4, 0)
+        layout.addWidget(creator02_label, 5, 0)
+        layout.addWidget(creator02_label_2, 6, 0)
+        layout.addWidget(publisher_label, 7, 0)
+        layout.addWidget(publisher_label2, 8, 0)
+        layout.addWidget(description_label, 9, 0)
+        layout.addWidget(self.epub_path_text, 0, 1, 1, 2)
+        layout.addWidget(self.button_pass, 0, 3)
+        layout.addWidget(self.title_text, 1, 1, 1, 3)
+        layout.addWidget(self.title_yomi_text, 2, 1, 1, 3)
+        layout.addWidget(self.creator01_text, 3, 1, 1, 3)
+        layout.addWidget(self.creator01_yomi_text, 4, 1, 1, 3)
+        layout.addWidget(self.creator02_text, 5, 1, 1, 3)
+        layout.addWidget(self.creator02_yomi_text, 6, 1, 1, 3)
+        layout.addWidget(self.publisher_text, 7, 1, 1, 3)
+        layout.addWidget(self.publisher_yomi_text, 8, 1, 1, 3)
+        layout.addWidget(self.description_text, 9, 1, 1, 3)
+        layout.addWidget(self.search_button, 10, 0)
+        layout.addWidget(self.change_button, 10, 1, 1, 3)
         self.setLayout(layout)
 
-        self.button.clicked.connect(self.accept)
+        self.show()
+
+    # epubからメタデータを取得
+    def ShowDialog(self):
+        if self.epub_path_text.text() != "":
+            text = self.epub_path_text.text()
+        else:
+            text = self.parent.app_dir
+        fname = QFileDialog.getOpenFileName(self, 'Open file', text, "epubファイル(*.epub)")
+        print(fname[0])
+
+
 
 def main():
     app = QApplication(sys.argv)
