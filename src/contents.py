@@ -127,11 +127,11 @@ class Author(MetadataContents):
     creator_name: str = ""
     creator_yomi_name: str = ""
 
-    def __init__(self, num: int, creator_name: str = "", creator_yomi_name: str = "") -> None:
+    def __init__(self, creator_name: str = "", creator_yomi_name: str = "", num: int = 1) -> None:
         self.num = num
         self.creator_name = creator_name
         self.creator_yomi_name = creator_yomi_name
-        pass
+
 
     def setup_ui(self, win: QWidget) -> None:
         # layout = QFormLayout()
@@ -225,6 +225,22 @@ class Synopsis(MetadataContents):
         v_main_layout = QVBoxLayout(win)
         v_main_layout.setContentsMargins(10, 0, 10, 0)
         v_main_layout.addWidget(glayout)
+
+def set_content(name: str) -> MetadataContents:
+    content = MetadataContents()
+    if (name == "Title"):
+        content = Title()
+    elif (name == "Author"):
+        content = Author()
+    elif (name == "Publisher"):
+        content = Publisher()
+    elif (name == "Synopsis"):
+        content = Synopsis()
+    else:
+        # ERROR DEFAULT
+        content = Title()
+
+    return content
 
 
 class metadata():

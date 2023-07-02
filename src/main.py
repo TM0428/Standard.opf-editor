@@ -1,9 +1,9 @@
 import sys
 import os
-from PyQt6.QtWidgets import (QApplication, QMainWindow, QMessageBox, QFileDialog, QDialog, QLabel, QVBoxLayout, QWidget, QGridLayout, QTextEdit, QGroupBox, QScrollArea, QToolButton, QMenu)
+from PyQt6.QtWidgets import (QApplication, QMainWindow, QMessageBox, QFileDialog, QDialog, QVBoxLayout, QWidget, QScrollArea, QToolButton, QMenu)
 from PyQt6.QtGui import QAction, QIcon
-from PyQt6.QtCore import QObject
-from typing import Final, Optional
+from contents import MetadataContents
+from typing import Final, Any
 import qdarktheme
 
 class MainWindow(QMainWindow):
@@ -91,10 +91,10 @@ class MainWindow(QMainWindow):
 # UIを作成しているウィンドウ
 class bodyUI(QWidget):
 
-    parent: QObject = None
+    parent: Any
 
-    def __init__(self, parent=None):
-        super(bodyUI, self).__init__(parent)
+    def __init__(self, parent: QMainWindow):
+        super(bodyUI, self).__init__()
         self.parent = parent
         self.initUI()
 
@@ -131,11 +131,11 @@ class bodyUI(QWidget):
 
         author1 = QWidget()
         # from contents import Author
-        Author(1).setup_ui(author1)
+        Author(num=1).setup_ui(author1)
         self.scroll_layout.addWidget(author1)
 
         author2 = QWidget()
-        Author(2).setup_ui(author2)
+        Author(num=2).setup_ui(author2)
         self.scroll_layout.addWidget(author2)
 
         publisher = QWidget()
@@ -175,10 +175,11 @@ class bodyUI(QWidget):
 
     def make_content(self, action_name: str):
         print(action_name)
-        title = QWidget()
-        from contents import Title
-        Title().setup_ui(title)
-        self.scroll_layout.addWidget(title)
+        from contents import set_content
+        content: MetadataContents = set_content(action_name)
+        new_layout = QWidget()
+        content.setup_ui(new_layout)
+        self.scroll_layout.addWidget(new_layout)
 
 
 
