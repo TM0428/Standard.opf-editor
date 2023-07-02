@@ -1,9 +1,9 @@
 import sys
 import os
-from PyQt6.QtWidgets import QApplication, QMainWindow, QMessageBox, QFileDialog, QDialog, QLabel, QVBoxLayout, QLineEdit, QPushButton, QHBoxLayout, QWidget, QGridLayout, QTextEdit
+from PyQt6.QtWidgets import (QApplication, QMainWindow, QMessageBox, QFileDialog, QDialog, QLabel, QVBoxLayout, QWidget, QGridLayout, QTextEdit, QGroupBox, QScrollArea, QToolButton, QMenu)
 from PyQt6.QtGui import QAction, QIcon
 from PyQt6.QtCore import QObject
-from typing import Final
+from typing import Final, Optional
 import qdarktheme
 
 class MainWindow(QMainWindow):
@@ -29,7 +29,7 @@ class MainWindow(QMainWindow):
         # EPUBの解凍
         unepubbutton = QAction(QIcon("hoge.png"), "Epubの解凍", self)
         unepubbutton.setShortcut("Ctrl+R")
-        unepubbutton.triggered.connect(self.epub_to_zip)
+        unepubbutton.triggered.connect(self.epub_to_folder)
         # Epubの作成
         dirbutton = QAction(QIcon("hoge.png"), "Epubの作成", self)
         dirbutton.setShortcut("Ctrl+E")
@@ -46,8 +46,8 @@ class MainWindow(QMainWindow):
         fileMenu.addAction(exitButton)
         helpMenu.addAction(versionbutton)
 
-    def epub_to_zip(self):
-        fname = QFileDialog.getOpenFileName(self, 'Open file', self.app_dir, "Epubファイル(*.epub)")
+    def epub_to_folder(self):
+        fname = QFileDialog.getOpenFileName(self, 'Open file', self.app_dir, "Epubファイル(*.epub)", options=QFileDialog.Option.DontUseNativeDialog)
         root, ext = os.path.splitext(fname[0])
         if fname[0] == "" or ext != ".epub":
             return
@@ -61,12 +61,12 @@ class MainWindow(QMainWindow):
         QMessageBox.question(self, "Message", "Epubを解凍しました")
 
     def folder_to_epub(self):
-        fname = QFileDialog.getExistingDirectory(self, 'Open file', self.app_dir)
+        from contents import EpubFileDialog
+        fname = QFileDialog.getExistingDirectory(self, 'Open file', self.app_dir, options=QFileDialog.Option.DontUseNativeDialog)
         if fname == "":
             return
         pathname = os.path.basename(fname)
-        dialog = CustomDialog(self)
-        dialog.label.setText(".epub")
+        dialog = EpubFileDialog(self)
         dialog.line_edit.setText(pathname)
         result = dialog.exec()
         if result == QDialog.DialogCode.Rejected:
@@ -88,36 +88,6 @@ class MainWindow(QMainWindow):
         dialog.exec()   # Stores the return value for the button pressed
 
 
-class CustomDialog(QDialog):
-    def __init__(self, parent=None):
-        super().__init__(parent)
-        self.setWindowTitle("ファイル名")
-        layout1 = QVBoxLayout()
-        layout2 = QHBoxLayout()
-        layout3 = QHBoxLayout()
-
-        self.label = QLabel(".epub", self)
-        self.line_edit = QLineEdit(self)
-        self.cancel_button = QPushButton("Cancel", self)
-        self.ok_button = QPushButton("OK", self)
-
-        layout2.addWidget(self.line_edit)
-        layout2.addWidget(self.label)
-
-        layout3.addWidget(self.cancel_button)
-        layout3.addWidget(self.ok_button)
-
-        layout1.addLayout(layout2)
-        layout1.addLayout(layout3)
-
-        self.setLayout(layout1)
-
-        self.ok_button.clicked.connect(self.accept)
-        self.cancel_button.clicked.connect(self.reject)
-
-    def getText(self):
-        return self.line_edit.text()
-
 # UIを作成しているウィンドウ
 class bodyUI(QWidget):
 
@@ -129,81 +99,86 @@ class bodyUI(QWidget):
         self.initUI()
 
     def initUI(self):
-        standard_opf = QLabel("Epubファイル", self)
-        title_label = QLabel("タイトル", self)
-        title_label2 = QLabel("タイトル(カタカナ)", self)
-        creator01_label = QLabel("著者名1", self)
-        creator01_label_2 = QLabel("著者名1(カタカナ)", self)
-        creator02_label = QLabel("著者名2", self)
-        creator02_label_2 = QLabel("著者名2(カタカナ)", self)
-        publisher_label = QLabel("出版社", self)
-        publisher_label2 = QLabel("出版社(カタカナ)", self)
-        description_label = QLabel("あらすじ", self)
 
-        self.epub_path_text = QLineEdit(self)
-        self.epub_path_text.setPlaceholderText("path/to/your/epub")
-        self.title_text = QLineEdit(self)
-        # self.title_text.textChanged[str].connect(self.onChanged)
-        self.title_text.setPlaceholderText("鬼滅の刃")
-        self.title_yomi_text = QLineEdit(self)
-        self.title_yomi_text.setPlaceholderText("キメツノヤイバ")
-        self.creator01_text = QLineEdit(self)
-        self.creator01_text.setPlaceholderText("吾峠呼世晴")
-        self.creator01_yomi_text = QLineEdit(self)
-        self.creator01_yomi_text.setPlaceholderText("ゴトウゲコヨハル")
-        self.creator02_text = QLineEdit(self)
-        self.creator02_yomi_text = QLineEdit(self)
-        self.publisher_text = QLineEdit(self)
-        self.publisher_yomi_text = QLineEdit(self)
-        self.description_text = QTextEdit(self)
-
-        self.button_pass = QPushButton("パスを選択...", self)
-        self.button_pass.clicked.connect(self.ShowDialog)
-        self.change_button = QPushButton("Standard.opfを編集する", self)
+        # self.change_button = QPushButton("Standard.opfを編集する", self)
         # self.change_button.clicked.connect(self.change)
-        self.search_button = QPushButton("koboで検索...", self)
+        # self.search_button = QPushButton("koboで検索...", self)
         # self.search_button.clicked.connect(self.search_kobo)
-        self.add_creator_button = QPushButton("", self)
-        self.add_creator_button.setIcon(QIcon("public/icon/add-40-32.png"))
 
-        layout = QGridLayout()
-        layout.setSpacing(10)
-        layout.addWidget(standard_opf, 0, 0)
-        layout.addWidget(title_label, 1, 0)
-        layout.addWidget(title_label2, 2, 0)
-        layout.addWidget(creator01_label, 3, 0)
-        layout.addWidget(creator01_label_2, 4, 0)
-        layout.addWidget(creator02_label, 5, 0)
-        layout.addWidget(creator02_label_2, 6, 0)
-        layout.addWidget(publisher_label, 7, 0)
-        layout.addWidget(publisher_label2, 8, 0)
-        layout.addWidget(description_label, 9, 0)
-        layout.addWidget(self.epub_path_text, 0, 1, 1, 2)
-        layout.addWidget(self.button_pass, 0, 3)
-        layout.addWidget(self.title_text, 1, 1, 1, 3)
-        layout.addWidget(self.title_yomi_text, 2, 1, 1, 3)
-        layout.addWidget(self.creator01_text, 3, 1, 1, 3)
-        layout.addWidget(self.creator01_yomi_text, 4, 1, 1, 3)
-        layout.addWidget(self.creator02_text, 5, 1, 1, 3)
-        layout.addWidget(self.creator02_yomi_text, 6, 1, 1, 3)
-        layout.addWidget(self.publisher_text, 7, 1, 1, 3)
-        layout.addWidget(self.publisher_yomi_text, 8, 1, 1, 3)
-        layout.addWidget(self.description_text, 9, 1, 1, 3)
-        layout.addWidget(self.search_button, 10, 0)
-        layout.addWidget(self.change_button, 10, 1, 1, 3)
-        layout.addWidget(self.add_creator_button, 11, 0, 1, 1)
+
+
+        # 以下、レイアウトの作成
+        from contents import (EpubFile, Title, Author, Publisher, Synopsis)
+        layout = QVBoxLayout()
+        layout.setContentsMargins(0, 0, 0, 0)
+
+        epub_file = QWidget()
+        # from contents import EpubFile
+        EpubFile().setup_ui(epub_file)
+        layout.addWidget(epub_file)
+
+        scroll_area = QScrollArea()
+        scroll_area.setWidgetResizable(True)
+        tmp = QWidget()
+        self.scroll_layout = QVBoxLayout()
+        scroll_area.setWidget(tmp)
+        tmp.setLayout(self.scroll_layout)
+
+        title = QWidget()
+        # from contents import Title
+        Title().setup_ui(title)
+        self.scroll_layout.addWidget(title)
+
+        author1 = QWidget()
+        # from contents import Author
+        Author(1).setup_ui(author1)
+        self.scroll_layout.addWidget(author1)
+
+        author2 = QWidget()
+        Author(2).setup_ui(author2)
+        self.scroll_layout.addWidget(author2)
+
+        publisher = QWidget()
+        Publisher().setup_ui(publisher)
+        self.scroll_layout.addWidget(publisher)
+
+        synopsis = QWidget()
+        Synopsis().setup_ui(synopsis)
+        self.scroll_layout.addWidget(synopsis)
+
+        layout.addWidget(scroll_area)
+
+        add_content_button = QToolButton()
+        add_content_button.setIcon(QIcon("public/icon/add-77-32.png"))
+        add_content_button.setPopupMode(QToolButton.ToolButtonPopupMode.InstantPopup)
+        add_content_menu = QMenu()
+        add_content_button.setMenu(add_content_menu)
+
+        # アクションを追加する
+        action1 = QAction("Title", add_content_button)
+        action1.triggered.connect(lambda: self.make_content(action1.text()))
+        action2 = QAction("Author", add_content_button)
+        action2.triggered.connect(lambda: self.make_content(action2.text()))
+        action3 = QAction("Publisher", add_content_button)
+        action3.triggered.connect(lambda: self.make_content(action3.text()))
+        action4 = QAction("Synopsis", add_content_button)
+        action4.triggered.connect(lambda: self.make_content(action4.text()))
+
+        for action in [action1, action2, action3, action4]:
+            add_content_menu.addAction(action)
+
+
+        layout.addWidget(add_content_button)
+        # layout.addStretch()
         self.setLayout(layout)
-
         self.show()
 
-    # epubからメタデータを取得
-    def ShowDialog(self):
-        if self.epub_path_text.text() != "":
-            text = self.epub_path_text.text()
-        else:
-            text = self.parent.app_dir
-        fname = QFileDialog.getOpenFileName(self, 'Open file', text, "epubファイル(*.epub)")
-        print(fname[0])
+    def make_content(self, action_name: str):
+        print(action_name)
+        title = QWidget()
+        from contents import Title
+        Title().setup_ui(title)
+        self.scroll_layout.addWidget(title)
 
 
 
