@@ -1,12 +1,13 @@
 import sys
 import os
-from PyQt6.QtWidgets import (QApplication, QMainWindow, QMessageBox, QFileDialog, QDialog, QVBoxLayout, QWidget, QScrollArea, QToolButton, QMenu)
+from PyQt6.QtWidgets import (QApplication, QMainWindow, QMessageBox, QFileDialog, QDialog, QVBoxLayout, QWidget, QScrollArea, QToolButton, QMenu, QHBoxLayout, QLayout, QPushButton)
 from PyQt6.QtGui import QAction, QIcon
 from contents import MetadataContents
 from typing import Final, Any, Dict, List, Optional
 from contents import (EpubFile, set_content)
 import qdarktheme
 from ebooklib import epub
+from util import read_epub
 
 class MainWindow(QMainWindow):
     title: Final[str] = "Epub Metadata Editor"
@@ -97,6 +98,8 @@ class bodyUI(QWidget):
 
     id_contents: Dict[str, MetadataContents] = {}
     id_none_contents: List[MetadataContents] = []
+    book: epub.EpubBook
+    path: str = "book.epub"
 
     def __init__(self, parent: QMainWindow):
         super(bodyUI, self).__init__()
@@ -174,8 +177,13 @@ class bodyUI(QWidget):
         for action in [action1, action2, action3, action4]:
             add_content_menu.addAction(action)
 
+        footer_layout: QLayout = QHBoxLayout()
+        footer_layout.addWidget(add_content_button)
+        exec_button: QPushButton = QPushButton("変更")
+        exec_button.clicked.connect(self.exec_epub)
+        footer_layout.addWidget(exec_button)
 
-        layout.addWidget(add_content_button)
+        layout.addLayout(footer_layout)
         # layout.addStretch()
         self.setLayout(layout)
         self.show()
@@ -189,12 +197,12 @@ class bodyUI(QWidget):
 
     def set_data(self, path: str):
         print(path)
-        book = epub.read_epub(path)
+        self.path = path
+        self.book = read_epub(path)
         # DCタグの探索
-        metadata: Dict[Any, Any] = book.metadata
+        metadata: Dict[Any, Any] = self.book.metadata
         dc: Any = metadata.get('http://purl.org/dc/elements/1.1/')
         # opf: Any = metadata.get('http://www.idpf.org/2007/opf')
-
 
         for k, v in dc.items():
             for data in v:
@@ -209,7 +217,7 @@ class bodyUI(QWidget):
                     self.id_contents[id].set_default_text(text)
             # print(k, v)
 
-        add_contents = book.get_metadata("OPF", None)
+        add_contents = self.book.get_metadata("OPF", None)
         for add_content in add_contents:
             text = add_content[0]
             prop: Dict[str, str] = add_content[1]
@@ -229,6 +237,14 @@ class bodyUI(QWidget):
             qw = QWidget()
             content.setup_ui(qw)
             self.scroll_layout.addWidget(qw)
+
+    def exec_epub(self):
+        if not self.book:
+            return
+        # self.book.reset_metadata("DC", "title")
+        self.book.set_unique_metadata("DC", "title", "akame ga kiru", {"id": "title"})
+        epub.write_epub(name="../book.epub", book=self.book)
+        print("End")
 
 
 
