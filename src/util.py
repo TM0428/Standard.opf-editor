@@ -2,6 +2,7 @@
 import zipfile
 import subprocess
 # import os
+from ebooklib import epub
 
 def unzip(dirpass, filepass):
     with zipfile.ZipFile(filepass, 'r') as inputFile:

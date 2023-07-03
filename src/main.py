@@ -3,8 +3,10 @@ import os
 from PyQt6.QtWidgets import (QApplication, QMainWindow, QMessageBox, QFileDialog, QDialog, QVBoxLayout, QWidget, QScrollArea, QToolButton, QMenu)
 from PyQt6.QtGui import QAction, QIcon
 from contents import MetadataContents
-from typing import Final, Any
+from typing import Final, Any, Dict, List, Optional
+from contents import (EpubFile, set_content)
 import qdarktheme
+from ebooklib import epub
 
 class MainWindow(QMainWindow):
     title: Final[str] = "Epub Metadata Editor"
@@ -93,6 +95,9 @@ class bodyUI(QWidget):
 
     parent: Any
 
+    id_contents: Dict[str, MetadataContents] = {}
+    id_none_contents: List[MetadataContents] = []
+
     def __init__(self, parent: QMainWindow):
         super(bodyUI, self).__init__()
         self.parent = parent
@@ -106,16 +111,17 @@ class bodyUI(QWidget):
         # self.search_button.clicked.connect(self.search_kobo)
 
 
-
         # 以下、レイアウトの作成
-        from contents import (EpubFile, Title, Author, Publisher, Synopsis)
         layout = QVBoxLayout()
         layout.setContentsMargins(0, 0, 0, 0)
 
-        epub_file = QWidget()
+        epub_file_w = QWidget()
         # from contents import EpubFile
-        EpubFile().setup_ui(epub_file)
-        layout.addWidget(epub_file)
+        self.epub_file = EpubFile()
+        self.epub_file.setup_ui(epub_file_w)
+        layout.addWidget(epub_file_w)
+        self.epub_file.set_epub_selected_method(self.set_data)
+
 
         scroll_area = QScrollArea()
         scroll_area.setWidgetResizable(True)
@@ -123,7 +129,7 @@ class bodyUI(QWidget):
         self.scroll_layout = QVBoxLayout()
         scroll_area.setWidget(tmp)
         tmp.setLayout(self.scroll_layout)
-
+        """
         title = QWidget()
         # from contents import Title
         Title().setup_ui(title)
@@ -145,6 +151,7 @@ class bodyUI(QWidget):
         synopsis = QWidget()
         Synopsis().setup_ui(synopsis)
         self.scroll_layout.addWidget(synopsis)
+        """
 
         layout.addWidget(scroll_area)
 
@@ -175,11 +182,53 @@ class bodyUI(QWidget):
 
     def make_content(self, action_name: str):
         print(action_name)
-        from contents import set_content
         content: MetadataContents = set_content(action_name)
         new_layout = QWidget()
         content.setup_ui(new_layout)
         self.scroll_layout.addWidget(new_layout)
+
+    def set_data(self, path: str):
+        print(path)
+        book = epub.read_epub(path)
+        # DCタグの探索
+        metadata: Dict[Any, Any] = book.metadata
+        dc: Any = metadata.get('http://purl.org/dc/elements/1.1/')
+        # opf: Any = metadata.get('http://www.idpf.org/2007/opf')
+
+
+        for k, v in dc.items():
+            for data in v:
+                text = data[0]
+                id = data[1].get("id")
+                if not id:
+                    content = set_content(k)
+                    content.set_default_text(text)
+                    self.id_none_contents.append(content)
+                else:
+                    self.id_contents[id] = set_content(k)
+                    self.id_contents[id].set_default_text(text)
+            # print(k, v)
+
+        add_contents = book.get_metadata("OPF", None)
+        for add_content in add_contents:
+            text = add_content[0]
+            prop: Dict[str, str] = add_content[1]
+            ref: Optional[str] = prop.get("refines")
+            if ref:
+                if ref[1:] in self.id_contents:
+                    self.id_contents[ref[1:]].set_append_text(text, prop.get("property"))
+            print(add_content)
+
+        for k, v in self.id_contents.items():
+            print(k)
+            qw = QWidget()
+            v.setup_ui(qw)
+            self.scroll_layout.addWidget(qw)
+
+        for content in self.id_none_contents:
+            qw = QWidget()
+            content.setup_ui(qw)
+            self.scroll_layout.addWidget(qw)
 
 
 

@@ -1,12 +1,13 @@
 import os
 from PyQt6.QtWidgets import (QWidget, QGroupBox, QLabel, QLineEdit, QVBoxLayout, QPushButton, QFileDialog, QHBoxLayout, QTextEdit, QDialog)
-
+from typing import Any, Optional
 
 class QGrowingTextEdit(QTextEdit):
 
     def __init__(self, parent=None):
         super().__init__(parent=parent)
         self.document().contentsChanged.connect(self.sizeChange)
+        self.document().documentLayout().documentSizeChanged.connect(self.sizeChange)
 
         self.heightMin = 0
         self.heightMax = 65000
@@ -14,7 +15,11 @@ class QGrowingTextEdit(QTextEdit):
     def sizeChange(self):
         docHeight: int = int(self.document().size().height())
         if self.heightMin <= docHeight <= self.heightMax:
-            self.setMinimumHeight(docHeight)
+            self.setMinimumHeight(docHeight + 10)
+
+
+    def setText(self, text):
+        super().setText(text)
 
 class EpubFileDialog(QDialog):
     def __init__(self, parent=None):
@@ -53,8 +58,16 @@ class MetadataContents:
     def setup_ui(self, win: QWidget):
         return None
 
+    def set_default_text(self, text: str) -> None:
+        return
+
+    def set_append_text(self, text: str, prop: str | None) -> None:
+        return
+
+
 class EpubFile(MetadataContents):
     win: QWidget
+    epub_sel: Any = None
 
     def setup_ui(self, win: QWidget) -> None:
         self.win = win
@@ -76,6 +89,8 @@ class EpubFile(MetadataContents):
         v_main_layout.setContentsMargins(10, 10, 10, 0)
         v_main_layout.addWidget(glayout)
 
+    def set_epub_selected_method(self, m):
+        self.epub_sel = m
 
     def ShowDialog(self):
         if self.epub_path_text.text() != "":
@@ -84,6 +99,13 @@ class EpubFile(MetadataContents):
             text = os.getcwd()
         fname = QFileDialog.getOpenFileName(self.win, 'Open file', text, "epubファイル(*.epub)", options=QFileDialog.Option.DontUseNativeDialog)
         self.epub_path_text.setText(fname[0])
+        if fname[0] != "" and self.epub_sel:
+            self.epub_sel(fname[0])
+
+    def set_default_text(self, text: str) -> None:
+        self.epub_path_text.setText(text)
+
+
 
 class Title(MetadataContents):
     title_name: str = ""
@@ -121,6 +143,14 @@ class Title(MetadataContents):
         v_main_layout = QVBoxLayout(win)
         v_main_layout.setContentsMargins(10, 0, 10, 0)
         v_main_layout.addWidget(glayout)
+
+    def set_default_text(self, text: str) -> None:
+        self.title_name = text
+
+    def set_append_text(self, text: str, prop: Optional[str]) -> None:
+        if prop == "file-as":
+            self.title_yomi_name = text
+
 
 class Author(MetadataContents):
     num: int = 1
@@ -161,6 +191,13 @@ class Author(MetadataContents):
         v_main_layout.setContentsMargins(10, 0, 10, 0)
         v_main_layout.addWidget(glayout)
 
+    def set_default_text(self, text: str) -> None:
+        self.creator_name = text
+
+    def set_append_text(self, text: str, prop: str | None) -> None:
+        if prop == "file-as":
+            self.creator_yomi_name = text
+
 class Publisher(MetadataContents):
     publisher_name: str = ""
     publisher_yomi_name: str = ""
@@ -198,13 +235,18 @@ class Publisher(MetadataContents):
         v_main_layout.setContentsMargins(10, 0, 10, 0)
         v_main_layout.addWidget(glayout)
 
+    def set_default_text(self, text: str) -> None:
+        self.publisher_name = text
+
+    def set_append_text(self, text: str, prop: str | None) -> None:
+        if prop == "file-as":
+            self.publisher_yomi_name = text
+
 class Synopsis(MetadataContents):
     synopsis_name: str = ""
-    synopsis_yomi_name: str = ""
 
-    def __init__(self, synopsis_name: str = "", synopsis_yomi_name: str = "") -> None:
+    def __init__(self, synopsis_name: str = "") -> None:
         self.synopsis_name = synopsis_name
-        self.synopsis_yomi_name = synopsis_yomi_name
         pass
 
     def setup_ui(self, win: QWidget) -> None:
@@ -215,6 +257,7 @@ class Synopsis(MetadataContents):
         glayout.setLayout(layout)
         synopsis_label = QLabel("あらすじ", None)
         self.synopsis_text = QGrowingTextEdit()
+        self.synopsis_text.textChanged.connect(lambda: self.synopsis_text.sizeChange())
         self.synopsis_text.setText(self.synopsis_name)
 
         # layouts
@@ -226,16 +269,82 @@ class Synopsis(MetadataContents):
         v_main_layout.setContentsMargins(10, 0, 10, 0)
         v_main_layout.addWidget(glayout)
 
+    def set_default_text(self, text: str) -> None:
+        self.synopsis_name = text
+
+class Identifier(MetadataContents):
+    identifier_name: str
+
+    def __init__(self, identifier_name: str = "") -> None:
+        self.identifier_name = identifier_name
+        pass
+
+    def setup_ui(self, win: QWidget) -> None:
+        # layout = QFormLayout()
+        # layout.setFieldGrowthPolicy(QFormLayout.FieldGrowthPolicy.AllNonFixedFieldsGrow)
+        layout = QHBoxLayout()
+        glayout = QGroupBox("Identifier")
+        glayout.setLayout(layout)
+        identifier_label = QLabel("Unique ID", None)
+        self.identifier_text = QLineEdit()
+        self.identifier_text.setText(self.identifier_name)
+        self.identifier_text.setDisabled(True)
+
+        # layouts
+
+        layout.addWidget(identifier_label, 1)
+        layout.addWidget(self.identifier_text, 3)
+
+        v_main_layout = QVBoxLayout(win)
+        v_main_layout.setContentsMargins(10, 0, 10, 0)
+        v_main_layout.addWidget(glayout)
+
+    def set_default_text(self, text: str) -> None:
+        self.identifier_name = text
+
+class Language(MetadataContents):
+    language_name: str
+
+    def __init__(self, language_name: str = "") -> None:
+        self.language_name = language_name
+        pass
+
+    def setup_ui(self, win: QWidget) -> None:
+        # layout = QFormLayout()
+        # layout.setFieldGrowthPolicy(QFormLayout.FieldGrowthPolicy.AllNonFixedFieldsGrow)
+        layout = QHBoxLayout()
+        glayout = QGroupBox("Language")
+        glayout.setLayout(layout)
+        language_label = QLabel("language", None)
+        self.language_text = QLineEdit()
+        self.language_text.setText(self.language_name)
+
+        # layouts
+
+        layout.addWidget(language_label, 1)
+        layout.addWidget(self.language_text, 3)
+
+        v_main_layout = QVBoxLayout(win)
+        v_main_layout.setContentsMargins(10, 0, 10, 0)
+        v_main_layout.addWidget(glayout)
+
+    def set_default_text(self, text: str) -> None:
+        self.language_name = text
+
 def set_content(name: str) -> MetadataContents:
     content = MetadataContents()
-    if (name == "Title"):
+    if name == "Title" or name == "title":
         content = Title()
-    elif (name == "Author"):
+    elif name == "Author" or name == "creator":
         content = Author()
-    elif (name == "Publisher"):
+    elif name == "Publisher" or name == "publisher":
         content = Publisher()
-    elif (name == "Synopsis"):
+    elif name == "Synopsis" or name == "description":
         content = Synopsis()
+    elif name == "Identifier" or name == "identifier":
+        content = Identifier()
+    elif name == "Language" or name == "language":
+        content = Language()
     else:
         # ERROR DEFAULT
         content = Title()
