@@ -7,7 +7,7 @@ from typing import Final, Any, Dict, List, Optional
 from contents import (EpubFile, set_content)
 import qdarktheme
 from ebooklib import epub
-from util import read_epub
+from util import read_epub, write_epub
 
 class MainWindow(QMainWindow):
     title: Final[str] = "Epub Metadata Editor"
@@ -196,7 +196,7 @@ class bodyUI(QWidget):
         self.scroll_layout.addWidget(new_layout)
 
     def set_data(self, path: str):
-        print(path)
+        # print(path)
         self.path = path
         self.book = read_epub(path)
         # DCタグの探索
@@ -225,7 +225,7 @@ class bodyUI(QWidget):
             if ref:
                 if ref[1:] in self.id_contents:
                     self.id_contents[ref[1:]].set_append_text(text, prop.get("property"))
-            print(add_content)
+            # print(add_content)
 
         for k, v in self.id_contents.items():
             print(k)
@@ -243,7 +243,7 @@ class bodyUI(QWidget):
             return
         # self.book.reset_metadata("DC", "title")
         self.book.set_unique_metadata("DC", "title", "akame ga kiru", {"id": "title"})
-        epub.write_epub(name="../book.epub", book=self.book)
+        write_epub(name="../book.epub", book=self.book)
         print("End")
 
 

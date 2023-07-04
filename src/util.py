@@ -4,9 +4,11 @@ import subprocess
 # import os
 import posixpath as zip_path
 from ebooklib.epub import (
-    EpubBook, EpubReader, EpubNcx, EpubSMIL, EpubNav, EpubCoverHtml, EpubHtml, EpubCover, EpubImage, EpubItem,
+    EpubBook, EpubReader, EpubNcx, EpubSMIL, EpubCoverHtml, EpubHtml, EpubCover, EpubImage, EpubItem, EpubNav, EpubException, EpubWriter,
     NAMESPACES, IMAGE_MEDIA_TYPES
 )
+from typing import Dict
+from lxml import etree
 from urllib.parse import unquote
 
 def unzip(dirpass, filepass):
@@ -19,23 +21,77 @@ def pack_epub(foldername: str, filename: str) -> None:
     print("EPUB packing end.")
     return None
 
+
+
 class ExtendedEpubBook(EpubBook):
     def __init__(self):
         super().__init__()
         self.FOLDER_NAME = "item"
 
-
 class ExtendedEpubHtml(EpubHtml):
     def get_content(self, default=None):
         return self.content
 
+class ExtendedEpubNav(ExtendedEpubHtml):
+
+    def __str__(self):
+        return '<EpubNav:%s:%s>' % (self.id, self.file_name)
+
+class ExtendedEpubWriter(EpubWriter):
+    def _write_opf_spine(self, root, ncx_id):
+        spine_attributes = {'toc': ncx_id or 'ncx'}
+        if self.book.direction and self.options['spine_direction']:
+            spine_attributes['page-progression-direction'] = self.book.direction
+
+        spine = etree.SubElement(root, 'spine', spine_attributes)
+
+        for _item in self.book.spine:
+            # this is for now
+            # later we should be able to fetch things from tuple
+
+            is_linear = True
+            opts: Dict[str, str]
+            if isinstance(_item, tuple):
+                item = _item[0]
+
+                if len(_item) > 1:
+                    if _item[1] == 'no':
+                        is_linear = False
+            elif isinstance(_item, dict):
+                opts = _item
+            else:
+                item = _item
+                if isinstance(item, EpubHtml):
+                    opts = {'idref': item.get_id()}
+
+                    if not item.is_linear or not is_linear:
+                        opts['linear'] = 'no'
+                elif isinstance(item, EpubItem):
+                    opts = {'idref': item.get_id()}
+
+                    if not item.is_linear or not is_linear:
+                        opts['linear'] = 'no'
+                else:
+                    opts = {'idref': item}
+
+            try:
+                itm = self.book.get_item_with_id(item)
+
+                if not itm.is_linear or not is_linear:
+                    opts['linear'] = 'no'
+                elif is_linear:
+                    opts['linear'] = 'yes'
+            except BaseException:
+                pass
+            print(opts)
+
+            etree.SubElement(spine, 'itemref', opts)
 
 class ExtendedEpubReader(EpubReader):
 
     def __init__(self, epub_file_name, options=None):
         super().__init__(epub_file_name, options)
         self.book = ExtendedEpubBook()
-        print(self.book.FOLDER_NAME)
 
     def _load_manifest(self):
         for r in self.container.find('{%s}%s' % (NAMESPACES['OPF'], 'manifest')):
@@ -64,7 +120,7 @@ class ExtendedEpubReader(EpubReader):
                 ei.content = self.read_file(zip_path.join(self.opf_dir, ei.file_name))
             elif media_type == 'application/xhtml+xml':
                 if 'nav' in properties:
-                    ei = EpubNav(uid=r.get('id'), file_name=unquote(r.get('href')))
+                    ei = ExtendedEpubNav(uid=r.get('id'), file_name=unquote(r.get('href')))
 
                     ei.content = self.read_file(zip_path.join(self.opf_dir, r.get('href')))
                 elif 'cover' in properties:
@@ -106,6 +162,55 @@ class ExtendedEpubReader(EpubReader):
 
             self.book.add_item(ei)
 
+    def _load_container(self):
+        super()._load_container()
+        # print(zip_path.basename(self.opf_file))
+        # TODO
+        # いずれは、content.opf固定ではないファイル命名にする
+
+    def _load_spine(self):
+        spine = self.container.find('{%s}%s' % (NAMESPACES['OPF'], 'spine'))
+
+        # spineは、Dict型で保存を行う
+        # self.book.spine = [(t.get('idref'), t.get('linear', 'yes'), t.get('properties', None)) for t in spine]
+        self.book.spine = [dict(t.attrib) for t in spine]
+
+        print(spine[0].attrib)
+        toc = spine.get('toc', '')
+        self.book.set_direction(spine.get('page-progression-direction', None))
+
+        # should read ncx or nav file
+        nav_item = next((item for item in self.book.items if isinstance(item, EpubNav)), None)
+        if toc:
+            if not self.options.get('ignore_ncx') or not nav_item:
+                try:
+                    ncxFile = self.read_file(zip_path.join(self.opf_dir, self.book.get_item_with_id(toc).get_name()))
+                except KeyError:
+                    raise EpubException(-1, 'Can not find ncx file.')
+
+                self._parse_ncx(ncxFile)
+
+
+
+def write_epub(name, book, options=None):
+    """
+    Creates epub file with the content defined in EpubBook.
+
+    >>> ebooklib.write_epub('book.epub', book)
+
+    :Args:
+      - name: file name for the output file
+      - book: instance of EpubBook
+      - options: extra opions as dictionary (optional)
+    """
+    epub = ExtendedEpubWriter(name, book, options)
+
+    epub.process()
+
+    try:
+        epub.write()
+    except IOError:
+        pass
 
 def read_epub(name, options=None):
     """
