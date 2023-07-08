@@ -4,10 +4,9 @@ from PyQt6.QtWidgets import (QApplication, QMainWindow, QMessageBox, QFileDialog
 from PyQt6.QtGui import QAction, QIcon
 from contents import MetadataContents
 from typing import Final, Any, Dict, List, Optional
-from contents import (EpubFile, set_content)
+from contents import (EpubFile, set_content, TextNotFoundException)
 import qdarktheme
-from ebooklib import epub
-from util import read_epub, write_epub
+from util import read_epub, write_epub, ExtendedEpubBook
 
 class MainWindow(QMainWindow):
     title: Final[str] = "Epub Metadata Editor"
@@ -96,9 +95,8 @@ class bodyUI(QWidget):
 
     parent: Any
 
-    id_contents: Dict[str, MetadataContents] = {}
-    id_none_contents: List[MetadataContents] = []
-    book: epub.EpubBook
+    metadata_contents: List[MetadataContents] = []
+    book: ExtendedEpubBook
     path: str = "book.epub"
 
     def __init__(self, parent: QMainWindow):
@@ -178,10 +176,12 @@ class bodyUI(QWidget):
             add_content_menu.addAction(action)
 
         footer_layout: QLayout = QHBoxLayout()
+        footer_layout.setContentsMargins(10, 0, 10, 10)
         footer_layout.addWidget(add_content_button)
+        footer_layout.addStretch(2)
         exec_button: QPushButton = QPushButton("変更")
         exec_button.clicked.connect(self.exec_epub)
-        footer_layout.addWidget(exec_button)
+        footer_layout.addWidget(exec_button, 1)
 
         layout.addLayout(footer_layout)
         # layout.addStretch()
@@ -193,6 +193,7 @@ class bodyUI(QWidget):
         content: MetadataContents = set_content(action_name)
         new_layout = QWidget()
         content.setup_ui(new_layout)
+        self.metadata_contents.append(content)
         self.scroll_layout.addWidget(new_layout)
 
     def set_data(self, path: str):
@@ -208,13 +209,12 @@ class bodyUI(QWidget):
             for data in v:
                 text = data[0]
                 id = data[1].get("id")
-                if not id:
-                    content = set_content(k)
-                    content.set_default_text(text)
-                    self.id_none_contents.append(content)
-                else:
-                    self.id_contents[id] = set_content(k)
-                    self.id_contents[id].set_default_text(text)
+                content = set_content(k)
+                content.set_default_text(text)
+                if id:
+                    content.id_name = id
+                self.metadata_contents.append(content)
+
             # print(k, v)
 
         add_contents = self.book.get_metadata("OPF", None)
@@ -223,27 +223,47 @@ class bodyUI(QWidget):
             prop: Dict[str, str] = add_content[1]
             ref: Optional[str] = prop.get("refines")
             if ref:
-                if ref[1:] in self.id_contents:
-                    self.id_contents[ref[1:]].set_append_text(text, prop.get("property"))
-            # print(add_content)
+                for content in self.metadata_contents:
+                    if content.id_name == ref[1:]:
+                        content.set_append_text(text, prop.get("property"))
 
-        for k, v in self.id_contents.items():
-            print(k)
-            qw = QWidget()
-            v.setup_ui(qw)
-            self.scroll_layout.addWidget(qw)
-
-        for content in self.id_none_contents:
+        for content in self.metadata_contents:
             qw = QWidget()
             content.setup_ui(qw)
             self.scroll_layout.addWidget(qw)
 
     def exec_epub(self):
+        from contents import EpubFileDialog
         if not self.book:
             return
         # self.book.reset_metadata("DC", "title")
-        self.book.set_unique_metadata("DC", "title", "akame ga kiru", {"id": "title"})
-        write_epub(name="../book.epub", book=self.book)
+        # self.book.add_metadata("DC", "title", "akame ga kiru", {"id": "title"})
+        try:
+            for content in self.metadata_contents:
+                if content.disabled:
+                    continue
+                content.reset_metadata(self.book)
+        except TextNotFoundException as e:
+            QMessageBox.warning(self, "エラー", str(e))
+            return
+        for content in self.metadata_contents:
+            if content.disabled:
+                continue
+            content.set_metadata(self.book)
+
+        pathname = os.path.splitext(os.path.basename(self.path))[0]
+        dialog = EpubFileDialog(self)
+        dialog.line_edit.setText(pathname)
+        result = dialog.exec()
+        if result == QDialog.DialogCode.Rejected:
+            return
+        elif result == QDialog.DialogCode.Accepted:
+            t = dialog.getText()
+        else:
+            t = os.path.basename(self.path)
+
+        write_epub(name="../" + t + ".epub", book=self.book)
+        QMessageBox.information(self, "Message", "Epubを作成しました")
         print("End")
 
 

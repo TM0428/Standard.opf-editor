@@ -28,6 +28,21 @@ class ExtendedEpubBook(EpubBook):
         super().__init__()
         self.FOLDER_NAME = "item"
 
+    def reset_metadata(self, namespace, name):
+        """Reset Metadata
+        """
+
+        if namespace in NAMESPACES:
+            namespace = NAMESPACES[namespace]
+
+        if namespace not in self.metadata:
+            self.metadata[namespace] = {}
+
+        if name not in self.metadata[namespace]:
+            self.metadata[namespace][name] = []
+
+        self.metadata[namespace][name] = []
+
 class ExtendedEpubHtml(EpubHtml):
     def get_content(self, default=None):
         return self.content
@@ -175,7 +190,6 @@ class ExtendedEpubReader(EpubReader):
         # self.book.spine = [(t.get('idref'), t.get('linear', 'yes'), t.get('properties', None)) for t in spine]
         self.book.spine = [dict(t.attrib) for t in spine]
 
-        print(spine[0].attrib)
         toc = spine.get('toc', '')
         self.book.set_direction(spine.get('page-progression-direction', None))
 
@@ -212,7 +226,7 @@ def write_epub(name, book, options=None):
     except IOError:
         pass
 
-def read_epub(name, options=None):
+def read_epub(name: str, options=None) -> ExtendedEpubBook:
     """
     Creates new instance of EpubBook with the content defined in the input file.
 
