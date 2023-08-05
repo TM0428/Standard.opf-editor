@@ -203,9 +203,8 @@ class Title(MetadataContents):
 
     def set_metadata(self, book: ExtendedEpubBook) -> None:
         book.add_metadata("DC", "title", self.title_text.text(), {'id': self.id_name})
-        book.add_metadata(None, 'meta', self.title_yomi_text.text(), {'refines': '#' + self.id_name,
-                                                                      'property': 'file-as',
-                                                                      'scheme': 'marc:relators'})
+        book.add_metadata("OPF", None, self.title_yomi_text.text(), {'refines': '#' + self.id_name,
+                                                                       'property': 'file-as'})
 
     def check_validation(self):
         super().check_validation()
@@ -266,6 +265,16 @@ class Author(MetadataContents):
         if prop == "file-as":
             self.creator_yomi_name = text
 
+    def set_metadata(self, book: ExtendedEpubBook) -> None:
+        book.add_metadata("DC", "creator", self.creator_text.text(), {'id': self.id_name})
+        book.add_metadata("OPF", None, self.creator_yomi_text.text(), {'refines': '#' + self.id_name,
+                                                                         'property': 'file-as'})
+        book.add_metadata("OPF", None, str(self.num), {'refines': '#' + self.id_name,
+                                                         'property': 'display-seq'})
+        book.add_metadata("OPF", None, "aut", {'refines': '#' + self.id_name,
+                                                 'property': 'role',
+                                                 'scheme': 'marc:relators'})
+
     def check_validation(self):
         if self.creator_text.text() == "":
             raise TextNotFoundException("著者名を入れてください。")
@@ -318,6 +327,11 @@ class Publisher(MetadataContents):
         if prop == "file-as":
             self.publisher_yomi_name = text
 
+    def set_metadata(self, book: ExtendedEpubBook) -> None:
+        book.add_metadata("DC", "publisher", self.publisher_text.text(), {'id': self.id_name})
+        book.add_metadata("OPF", None, self.publisher_yomi_text.text(), {'refines': '#' + self.id_name,
+                                                                           'property': 'file-as'})
+
     def check_validation(self):
         if self.publisher_text.text() == "":
             raise TextNotFoundException("出版社を入れてください。")
@@ -353,6 +367,10 @@ class Synopsis(MetadataContents):
         v_main_layout.addWidget(self.main_box_layout)
         self.add_footer()
 
+
+    def set_metadata(self, book: ExtendedEpubBook) -> None:
+        book.add_metadata("DC", 'description', self.synopsis_text.toPlainText())
+
     def set_default_text(self, text: str) -> None:
         self.synopsis_name = text
 
@@ -384,6 +402,9 @@ class Identifier(MetadataContents):
         v_main_layout = QVBoxLayout(win)
         v_main_layout.setContentsMargins(10, 0, 10, 0)
         v_main_layout.addWidget(self.main_box_layout)
+
+    def set_metadata(self, book: ExtendedEpubBook) -> None:
+        book.add_metadata("DC", 'identifier', self.identifier_text.text())
 
     def set_default_text(self, text: str) -> None:
         self.identifier_name = text
@@ -417,6 +438,9 @@ class Language(MetadataContents):
         v_main_layout = QVBoxLayout(win)
         v_main_layout.setContentsMargins(10, 0, 10, 0)
         v_main_layout.addWidget(glayout)
+
+    def set_metadata(self, book: ExtendedEpubBook) -> None:
+        book.add_metadata("DC", 'language', self.language_text.text())
 
     def set_default_text(self, text: str) -> None:
         self.language_name = text

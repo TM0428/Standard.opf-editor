@@ -31,6 +31,8 @@ class ExtendedEpubBook(EpubBook):
     def reset_metadata(self, namespace, name):
         """Reset Metadata
         """
+        id_dict = self.get_metadata(namespace, name)
+        print(id_dict)
 
         if namespace in NAMESPACES:
             namespace = NAMESPACES[namespace]

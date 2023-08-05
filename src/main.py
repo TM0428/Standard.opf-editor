@@ -130,29 +130,6 @@ class bodyUI(QWidget):
         self.scroll_layout = QVBoxLayout()
         scroll_area.setWidget(tmp)
         tmp.setLayout(self.scroll_layout)
-        """
-        title = QWidget()
-        # from contents import Title
-        Title().setup_ui(title)
-        self.scroll_layout.addWidget(title)
-
-        author1 = QWidget()
-        # from contents import Author
-        Author(num=1).setup_ui(author1)
-        self.scroll_layout.addWidget(author1)
-
-        author2 = QWidget()
-        Author(num=2).setup_ui(author2)
-        self.scroll_layout.addWidget(author2)
-
-        publisher = QWidget()
-        Publisher().setup_ui(publisher)
-        self.scroll_layout.addWidget(publisher)
-
-        synopsis = QWidget()
-        Synopsis().setup_ui(synopsis)
-        self.scroll_layout.addWidget(synopsis)
-        """
 
         layout.addWidget(scroll_area)
 
@@ -202,9 +179,9 @@ class bodyUI(QWidget):
         self.book = read_epub(path)
         # DCタグの探索
         metadata: Dict[Any, Any] = self.book.metadata
-        dc: Any = metadata.get('http://purl.org/dc/elements/1.1/')
+        dc: Any = metadata.get("http://purl.org/dc/elements/1.1/")
         # opf: Any = metadata.get('http://www.idpf.org/2007/opf')
-
+        print(self.book.metadata)
         for k, v in dc.items():
             for data in v:
                 text = data[0]
@@ -214,18 +191,28 @@ class bodyUI(QWidget):
                 if id:
                     content.id_name = id
                 self.metadata_contents.append(content)
+                self.book.reset_metadata("DC", k)
 
             # print(k, v)
 
         add_contents = self.book.get_metadata("OPF", None)
+        self.book.reset_metadata("OPF", None)
         for add_content in add_contents:
             text = add_content[0]
             prop: Dict[str, str] = add_content[1]
             ref: Optional[str] = prop.get("refines")
             if ref:
+                is_append: bool = False
                 for content in self.metadata_contents:
                     if content.id_name == ref[1:]:
                         content.set_append_text(text, prop.get("property"))
+                        is_append = True
+                if not is_append:
+                    self.book.add_metadata("OPF", None, add_content[0], add_content[1])
+            else:
+                self.book.add_metadata("OPF", None, add_content[0], add_content[1])
+
+
 
         for content in self.metadata_contents:
             qw = QWidget()
@@ -261,7 +248,7 @@ class bodyUI(QWidget):
             t = dialog.getText()
         else:
             t = os.path.basename(self.path)
-
+        print(self.book.metadata)
         write_epub(name="../" + t + ".epub", book=self.book)
         QMessageBox.information(self, "Message", "Epubを作成しました")
         print("End")
