@@ -7,10 +7,10 @@ import webbrowser
 from PyQt5.QtWidgets import *
 from PyQt5.QtGui import *
 from PyQt5.QtCore import *
-import ebooklib
-from ebooklib import epub
+# from ebooklib import epub
 
 text_dir = os.getcwd()
+
 class Maindata:
     title = ""
     title_yomi = ""
@@ -32,15 +32,15 @@ class MainWindow(QMainWindow):
         self.title = "Opf file editor"
         self.title_text = ""
         self.initUI()
-        
-        
-    def initUI(self):               
-        #設定
+
+
+    def initUI(self):
+        # 設定
         self.setWindowTitle(self.title)
         self.resize(600, 600)
         self.center()
         self.statusBar().showMessage("Made by TM")
-        mainMenu = self.menuBar() 
+        mainMenu = self.menuBar()
         fileMenu = mainMenu.addMenu("File")
         helpMenu = mainMenu.addMenu("Help")
         exitButton = QAction(QIcon("exit24.png"), "Exit", self)
@@ -70,21 +70,21 @@ class MainWindow(QMainWindow):
         self.move(qr.topLeft())
 
     def epub_to_zip(self):
-        fname = QFileDialog.getOpenFileName(self, 'Open file', text_dir,"Epubファイル(*.epub)")
+        fname = QFileDialog.getOpenFileName(self, 'Open file', text_dir, "Epubファイル(*.epub)")
         root, ext = os.path.splitext(fname[0])
         if fname[0] == "" or ext != ".epub":
             return
         dirname = os.path.dirname(fname[0])
         basename = os.path.basename(fname[0])
         bname, ext = os.path.splitext(basename)
-        os.rename(fname[0], os.path.join(dirname,bname + ".zip"))
+        os.rename(fname[0], os.path.join(dirname, bname + ".zip"))
         unzip(dirname + "/" + bname, dirname + "/" + bname + ".zip")
         os.remove(dirname + "/" + bname + ".zip")
         QMessageBox.question(self, "Message", "Epubを解凍しました", QMessageBox.Ok, QMessageBox.Ok)
-        
+
     def dir_def(self):
         fname = QFileDialog.getExistingDirectory(self, 'Open file', text_dir)
-        text,ok = QInputDialog.getText(self, 'Epubのファイル名を指定...', 'Epubのファイル名を指定...',QLineEdit.Normal,maindata.title)
+        text, ok = QInputDialog.getText(self, 'Epubのファイル名を指定...', 'Epubのファイル名を指定...', QLineEdit.Normal, maindata.title)
         if ok:
             t = str(text)
         else:
@@ -101,14 +101,14 @@ class MainWindow(QMainWindow):
     def versiontab(self):
         QMessageBox.question(self, "Version", "0.1.0 beta", QMessageBox.Ok, QMessageBox.Ok)
 
-def unzip(dirpass,filepass):
-    with zipfile.ZipFile(filepass,'r') as inputFile:
+def unzip(dirpass, filepass):
+    with zipfile.ZipFile(filepass, 'r') as inputFile:
         inputFile.extractall(dirpass)
 
 def Epub_gene_full(fname):
     os.chdir(fname)
 
-#UIを作成しているウィンドウ
+# UIを作成しているウィンドウ
 class UI(QWidget):
     def __init__(self, parent=None):
         super(UI, self).__init__(parent)
@@ -141,36 +141,36 @@ class UI(QWidget):
 
         self.button_pass = QPushButton("パスを選択...", self)
         self.button_pass.clicked.connect(self.ShowDialog)
-        self.change_button = QPushButton("Standard.opfを編集する",self)
+        self.change_button = QPushButton("Standard.opfを編集する", self)
         self.change_button.clicked.connect(self.change)
-        self.search_button = QPushButton("koboで検索...",self)
+        self.search_button = QPushButton("koboで検索...", self)
         self.search_button.clicked.connect(self.search_kobo)
 
         layout = QGridLayout()
         layout.setSpacing(10)
-        layout.addWidget(standard_opf,0,0)
-        layout.addWidget(title_label,1,0)
-        layout.addWidget(title_label2,2,0)
-        layout.addWidget(creator01_label,3,0)
-        layout.addWidget(creator01_label_2,4,0)
-        layout.addWidget(creator02_label,5,0)
-        layout.addWidget(creator02_label_2,6,0)
-        layout.addWidget(publisher_label,7,0)
-        layout.addWidget(publisher_label2,8,0)
-        layout.addWidget(description_label,9,0)
-        layout.addWidget(self.standard_opf_text,0,1,1,2)
-        layout.addWidget(self.button_pass,0,3)
-        layout.addWidget(self.title_text,1,1,1,3)
-        layout.addWidget(self.title_yomi_text,2,1,1,3)
-        layout.addWidget(self.creator01_text,3,1,1,3)
-        layout.addWidget(self.creator01_yomi_text,4,1,1,3)
-        layout.addWidget(self.creator02_text,5,1,1,3)
-        layout.addWidget(self.creator02_yomi_text,6,1,1,3)
-        layout.addWidget(self.publisher_text,7,1,1,3)
-        layout.addWidget(self.publisher_yomi_text,8,1,1,3)
-        layout.addWidget(self.description_text,9,1,1,3)
-        layout.addWidget(self.search_button,10,0)
-        layout.addWidget(self.change_button,10,1,1,3)
+        layout.addWidget(standard_opf, 0, 0)
+        layout.addWidget(title_label, 1, 0)
+        layout.addWidget(title_label2, 2, 0)
+        layout.addWidget(creator01_label, 3, 0)
+        layout.addWidget(creator01_label_2, 4, 0)
+        layout.addWidget(creator02_label, 5, 0)
+        layout.addWidget(creator02_label_2, 6, 0)
+        layout.addWidget(publisher_label, 7, 0)
+        layout.addWidget(publisher_label2, 8, 0)
+        layout.addWidget(description_label, 9, 0)
+        layout.addWidget(self.standard_opf_text, 0, 1, 1, 2)
+        layout.addWidget(self.button_pass, 0, 3)
+        layout.addWidget(self.title_text, 1, 1, 1, 3)
+        layout.addWidget(self.title_yomi_text, 2, 1, 1, 3)
+        layout.addWidget(self.creator01_text, 3, 1, 1, 3)
+        layout.addWidget(self.creator01_yomi_text, 4, 1, 1, 3)
+        layout.addWidget(self.creator02_text, 5, 1, 1, 3)
+        layout.addWidget(self.creator02_yomi_text, 6, 1, 1, 3)
+        layout.addWidget(self.publisher_text, 7, 1, 1, 3)
+        layout.addWidget(self.publisher_yomi_text, 8, 1, 1, 3)
+        layout.addWidget(self.description_text, 9, 1, 1, 3)
+        layout.addWidget(self.search_button, 10, 0)
+        layout.addWidget(self.change_button, 10, 1, 1, 3)
         self.setLayout(layout)
 
         self.show()
@@ -182,12 +182,12 @@ class UI(QWidget):
             text = self.standard_opf_text.text()
         else:
             text = text_dir
-        fname = QFileDialog.getOpenFileName(self, 'Open file',text,"epubファイル(*.epub)")
+        fname = QFileDialog.getOpenFileName(self, 'Open file', text, "epubファイル(*.epub)")
         path = fname[0]
         if path != "":
-            book = epub.read_epub(path)
-
-            #creatorは原則二人まで、title,publisher,descriptionは一つしかないという前提で動作を行う
+            # book = epub.read_epub(path)
+            book = None
+            # creatorは原則二人まで、title,publisher,descriptionは一つしかないという前提で動作を行う
 
             l_title = book.get_metadata('DC', 'title')
             if l_title != []:
@@ -231,7 +231,7 @@ class UI(QWidget):
                 maindata.description = l_description[0][0]
             else:
                 maindata.description = ""
-            
+
             # set data
 
             self.standard_opf_text.setText(path)
@@ -245,7 +245,7 @@ class UI(QWidget):
             self.publisher_yomi_text.setText(maindata.publisher_yomi)
             self.description_text.setText(maindata.description)
 
-    
+
     def change(self):
         # get data
         path = self.standard_opf_text.text()
@@ -258,42 +258,44 @@ class UI(QWidget):
         maindata.publisher = self.publisher_text.text()
         maindata.publisher_yomi = self.publisher_yomi_text.text()
         maindata.description = self.description_text.toPlainText()
-        book = epub.read_epub(path)
+        # book = epub.read_epub(path)
+        book = None
         # add title
-        book.reset_metadata("DC","title")
-        book.add_metadata("DC","title",maindata.title,{"id" : "title"})
+        book.reset_metadata("DC", "title")
+        book.add_metadata("DC", "title", maindata.title, {"id": "title"})
         if maindata.title_yomi != "":
-            book.add_opf_metadata(maindata.title_yomi, {"refines" : "#title",
-                                                                "property" : "file-as"})
+            book.add_opf_metadata(maindata.title_yomi, {"refines": "#title",
+                                                        "property": "file-as"})
         # add creators
-        book.reset_metadata("DC","creator")
+        book.reset_metadata("DC", "creator")
         file_as = maindata.creator01_yomi
-        book.add_author(maindata.creator01,file_as,"aut","1","creator01")
+        book.add_author(maindata.creator01, file_as, "aut", "1", "creator01")
         file_as = maindata.creator02_yomi
-        book.add_author(maindata.creator02,file_as,"aut","2","creator02")
+        book.add_author(maindata.creator02, file_as, "aut", "2", "creator02")
         # add publisher
-        book.reset_metadata("DC","publisher")
-        book.add_metadata("DC","publisher",maindata.publisher,{"id" : "publisher"})
+        book.reset_metadata("DC", "publisher")
+        book.add_metadata("DC", "publisher", maindata.publisher, {"id": "publisher"})
         if maindata.publisher_yomi != "":
-            book.add_opf_metadata(maindata.publisher_yomi, {"refines" : "#publisher",
-                                                                "property" : "file-as"})
+            book.add_opf_metadata(maindata.publisher_yomi, {"refines": "#publisher",
+                                                            "property": "file-as"})
         # add description
-        book.reset_metadata("DC","description")
-        book.add_metadata("DC","description",maindata.description)
+        book.reset_metadata("DC", "description")
+        book.add_metadata("DC", "description", maindata.description)
 
 
-        epub.change_epub(path, book, {})
+        # epub.change_epub(path, book, {})
 
-        
+
         QMessageBox.question(self, "Message", "Changed!!", QMessageBox.Ok, QMessageBox.Ok)
 
     def search_kobo(self):
         title = self.title_text.text()
-        b = bytes (title, 'eucjp')
+        b = bytes(title, 'eucjp')
         c = str(b)
-        c = c.lstrip('b').replace(r'\x','%').strip("\'")
+        c = c.lstrip('b').replace(r'\x', '%').strip("\'")
         url = 'https://books.rakuten.co.jp/search/nm?sv=30&h=30&o=0&v=2&spv=2&s=1&e=&b=1&g=101&sitem=' + c + '&x=0&y=0'
         webbrowser.open(url)
+
     def onChanged(self):
         maindata.title = self.title_text.text()
 
@@ -305,8 +307,9 @@ def main():
     mainwindow.show()
     sys.exit(app.exec_())
 
+
 if __name__ == "__main__":
-    
+
     main()
 
 

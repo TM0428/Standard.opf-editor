@@ -57,13 +57,12 @@ class TextNotFoundException(Exception):
 
 class MetadataContents:
     win: QWidget
-    id_name: str
+    id_name: str = ""
     main_layout: QVBoxLayout
     main_box_layout: QGroupBox
     disabled: bool = False
 
     def __init__(self):
-        self.id_name = ""
         self.disabled = False
         return
 
@@ -204,7 +203,7 @@ class Title(MetadataContents):
     def set_metadata(self, book: ExtendedEpubBook) -> None:
         book.add_metadata("DC", "title", self.title_text.text(), {'id': self.id_name})
         book.add_metadata("OPF", None, self.title_yomi_text.text(), {'refines': '#' + self.id_name,
-                                                                       'property': 'file-as'})
+                                                                     'property': 'file-as'})
 
     def check_validation(self):
         super().check_validation()
@@ -268,12 +267,12 @@ class Author(MetadataContents):
     def set_metadata(self, book: ExtendedEpubBook) -> None:
         book.add_metadata("DC", "creator", self.creator_text.text(), {'id': self.id_name})
         book.add_metadata("OPF", None, self.creator_yomi_text.text(), {'refines': '#' + self.id_name,
-                                                                         'property': 'file-as'})
+                                                                       'property': 'file-as'})
         book.add_metadata("OPF", None, str(self.num), {'refines': '#' + self.id_name,
-                                                         'property': 'display-seq'})
+                                                       'property': 'display-seq'})
         book.add_metadata("OPF", None, "aut", {'refines': '#' + self.id_name,
-                                                 'property': 'role',
-                                                 'scheme': 'marc:relators'})
+                                               'property': 'role',
+                                               'scheme': 'marc:relators'})
 
     def check_validation(self):
         if self.creator_text.text() == "":
@@ -330,7 +329,7 @@ class Publisher(MetadataContents):
     def set_metadata(self, book: ExtendedEpubBook) -> None:
         book.add_metadata("DC", "publisher", self.publisher_text.text(), {'id': self.id_name})
         book.add_metadata("OPF", None, self.publisher_yomi_text.text(), {'refines': '#' + self.id_name,
-                                                                           'property': 'file-as'})
+                                                                         'property': 'file-as'})
 
     def check_validation(self):
         if self.publisher_text.text() == "":
@@ -448,6 +447,51 @@ class Language(MetadataContents):
     def reset_metadata(self, book: ExtendedEpubBook) -> None:
         book.reset_metadata("DC", "language")
 
+class Series(MetadataContents):
+    series_name: str
+    id_name: str = "Series"
+
+    def __init__(self, series_name: str = "") -> None:
+        super().__init__()
+        self.series_name = series_name
+        pass
+
+    def setup_ui(self, win: QWidget) -> None:
+        super().setup_ui(win=win)
+        self.main_box_layout.setTitle("Series")
+        series_label = QLabel("シリーズ", None)
+        self.series_text = QLineEdit()
+        self.series_text.setText(self.series_name)
+
+        # layouts
+
+        layout1 = QHBoxLayout()
+        layout1.addWidget(series_label, 1)
+        layout1.addWidget(self.series_text, 3)
+        self.main_layout.addLayout(layout1)
+
+        v_main_layout = QVBoxLayout(win)
+        v_main_layout.setContentsMargins(10, 0, 10, 0)
+        v_main_layout.addWidget(self.main_box_layout)
+        self.add_footer()
+
+    def set_metadata(self, book: ExtendedEpubBook) -> None:
+        book.add_metadata("OPF", None, self.series_text.text(), {
+            "property": "belongs-to-collection",
+            "id": self.id_name
+        })
+        book.add_metadata("OPF", None, "set", {
+            "refines": "#" + self.id_name,
+            "property": "collection-type"
+        })
+
+    def set_default_text(self, text: str) -> None:
+        self.series_name = text
+
+    def reset_metadata(self, book: ExtendedEpubBook) -> None:
+        return
+
+
 def set_content(name: str) -> MetadataContents:
     content = MetadataContents()
     if name == "Title" or name == "title":
@@ -462,6 +506,8 @@ def set_content(name: str) -> MetadataContents:
         content = Identifier()
     elif name == "Language" or name == "language":
         content = Language()
+    elif name == "Series" or name == "series":
+        content = Series()
     else:
         # ERROR DEFAULT
         content = Title()

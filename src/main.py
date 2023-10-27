@@ -84,7 +84,7 @@ class MainWindow(QMainWindow):
 
 
     def versiontab(self):
-        dialog = QMessageBox(parent=self, text="0.0.0 beta")
+        dialog = QMessageBox(parent=self, text="1.0.0 beta")
         dialog.setIcon(QMessageBox.Icon.Information)
         dialog.setWindowTitle("versions")
         dialog.exec()   # Stores the return value for the button pressed
@@ -148,8 +148,10 @@ class bodyUI(QWidget):
         action3.triggered.connect(lambda: self.make_content(action3.text()))
         action4 = QAction("Synopsis", add_content_button)
         action4.triggered.connect(lambda: self.make_content(action4.text()))
+        action5 = QAction("Series", add_content_button)
+        action5.triggered.connect(lambda: self.make_content(action5.text()))
 
-        for action in [action1, action2, action3, action4]:
+        for action in [action1, action2, action3, action4, action5]:
             add_content_menu.addAction(action)
 
         footer_layout: QLayout = QHBoxLayout()

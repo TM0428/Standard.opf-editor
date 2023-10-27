@@ -21,15 +21,15 @@ class MainWindow(QMainWindow):
         self.title = "Opf file editor"
         self.title_text = ""
         self.initUI()
-        
-        
-    def initUI(self):               
-        #設定
+
+
+    def initUI(self):
+        # 設定
         self.setWindowTitle(self.title)
         self.resize(600, 600)
         self.center()
         self.statusBar().showMessage("Made by TM")
-        mainMenu = self.menuBar() 
+        mainMenu = self.menuBar()
         fileMenu = mainMenu.addMenu("File")
         helpMenu = mainMenu.addMenu("Help")
         exitButton = QAction(QIcon("exit24.png"), "Exit", self)
@@ -59,21 +59,21 @@ class MainWindow(QMainWindow):
         self.move(qr.topLeft())
 
     def epub_to_zip(self):
-        fname = QFileDialog.getOpenFileName(self, 'Open file', text_dir,"Epubファイル(*.epub)")
+        fname = QFileDialog.getOpenFileName(self, 'Open file', text_dir, "Epubファイル(*.epub)")
         root, ext = os.path.splitext(fname[0])
         if fname[0] == "" or ext != ".epub":
             return
         dirname = os.path.dirname(fname[0])
         basename = os.path.basename(fname[0])
         bname, ext = os.path.splitext(basename)
-        os.rename(fname[0], os.path.join(dirname,bname + ".zip"))
+        os.rename(fname[0], os.path.join(dirname, bname + ".zip"))
         unzip(dirname + "/" + bname, dirname + "/" + bname + ".zip")
         os.remove(dirname + "/" + bname + ".zip")
         QMessageBox.question(self, "Message", "Epubを解凍しました", QMessageBox.Ok, QMessageBox.Ok)
-        
+
     def dir_def(self):
         fname = QFileDialog.getExistingDirectory(self, 'Open file', text_dir)
-        text,ok = QInputDialog.getText(self, 'Epubのファイル名を指定...', 'Epubのファイル名を指定...',QLineEdit.Normal,maindata.title)
+        text, ok = QInputDialog.getText(self, 'Epubのファイル名を指定...', 'Epubのファイル名を指定...', QLineEdit.Normal, maindata.title)
         if ok:
             t = str(text)
         else:
@@ -90,14 +90,14 @@ class MainWindow(QMainWindow):
     def versiontab(self):
         QMessageBox.question(self, "Version", "0.0.5 beta", QMessageBox.Ok, QMessageBox.Ok)
 
-def unzip(dirpass,filepass):
-    with zipfile.ZipFile(filepass,'r') as inputFile:
+def unzip(dirpass, filepass):
+    with zipfile.ZipFile(filepass, 'r') as inputFile:
         inputFile.extractall(dirpass)
 
 def Epub_gene_full(fname):
     os.chdir(fname)
 
-#UIを作成しているウィンドウ
+# UIを作成しているウィンドウ
 class UI(QWidget):
     def __init__(self, parent=None):
         super(UI, self).__init__(parent)
@@ -130,36 +130,36 @@ class UI(QWidget):
 
         self.button_pass = QPushButton("パスを選択...", self)
         self.button_pass.clicked.connect(self.ShowDialog)
-        self.change_button = QPushButton("Standard.opfを編集する",self)
+        self.change_button = QPushButton("Standard.opfを編集する", self)
         self.change_button.clicked.connect(self.change)
-        self.search_button = QPushButton("koboで検索...",self)
+        self.search_button = QPushButton("koboで検索...", self)
         self.search_button.clicked.connect(self.search_kobo)
 
         layout = QGridLayout()
         layout.setSpacing(10)
-        layout.addWidget(standard_opf,0,0)
-        layout.addWidget(title_label,1,0)
-        layout.addWidget(title_label2,2,0)
-        layout.addWidget(author_label1,3,0)
-        layout.addWidget(author_label1_2,4,0)
-        layout.addWidget(author_label2,5,0)
-        layout.addWidget(author_label2_2,6,0)
-        layout.addWidget(publisher_label,7,0)
-        layout.addWidget(publisher_label2,8,0)
-        layout.addWidget(description_label,9,0)
-        layout.addWidget(self.standard_opf_text,0,1,1,2)
-        layout.addWidget(self.button_pass,0,3)
-        layout.addWidget(self.title_text,1,1,1,3)
-        layout.addWidget(self.title_yomi_text,2,1,1,3)
-        layout.addWidget(self.author1_text,3,1,1,3)
-        layout.addWidget(self.author1_yomi_text,4,1,1,3)
-        layout.addWidget(self.author2_text,5,1,1,3)
-        layout.addWidget(self.author2_yomi_text,6,1,1,3)
-        layout.addWidget(self.publisher_text,7,1,1,3)
-        layout.addWidget(self.publisher_yomi_text,8,1,1,3)
-        layout.addWidget(self.description_text,9,1,1,3)
-        layout.addWidget(self.search_button,10,0)
-        layout.addWidget(self.change_button,10,1,1,3)
+        layout.addWidget(standard_opf, 0, 0)
+        layout.addWidget(title_label, 1, 0)
+        layout.addWidget(title_label2, 2, 0)
+        layout.addWidget(author_label1, 3, 0)
+        layout.addWidget(author_label1_2, 4, 0)
+        layout.addWidget(author_label2, 5, 0)
+        layout.addWidget(author_label2_2, 6, 0)
+        layout.addWidget(publisher_label, 7, 0)
+        layout.addWidget(publisher_label2, 8, 0)
+        layout.addWidget(description_label, 9, 0)
+        layout.addWidget(self.standard_opf_text, 0, 1, 1, 2)
+        layout.addWidget(self.button_pass, 0, 3)
+        layout.addWidget(self.title_text, 1, 1, 1, 3)
+        layout.addWidget(self.title_yomi_text, 2, 1, 1, 3)
+        layout.addWidget(self.author1_text, 3, 1, 1, 3)
+        layout.addWidget(self.author1_yomi_text, 4, 1, 1, 3)
+        layout.addWidget(self.author2_text, 5, 1, 1, 3)
+        layout.addWidget(self.author2_yomi_text, 6, 1, 1, 3)
+        layout.addWidget(self.publisher_text, 7, 1, 1, 3)
+        layout.addWidget(self.publisher_yomi_text, 8, 1, 1, 3)
+        layout.addWidget(self.description_text, 9, 1, 1, 3)
+        layout.addWidget(self.search_button, 10, 0)
+        layout.addWidget(self.change_button, 10, 1, 1, 3)
         self.setLayout(layout)
 
         self.show()
@@ -170,10 +170,10 @@ class UI(QWidget):
             text = self.standard_opf_text.text()
         else:
             text = text_dir
-        fname = QFileDialog.getOpenFileName(self, 'Open file',text,"opfファイル(*.opf)")
+        fname = QFileDialog.getOpenFileName(self, 'Open file', text, "opfファイル(*.opf)")
         path = fname[0]
         if path != "":
-            f = open(path,'r',encoding="utf-8_sig")
+            f = open(path, 'r', encoding="utf-8_sig")
             lines = f.readlines()
             lines_strip = [line.strip() for line in lines]
 
@@ -191,7 +191,7 @@ class UI(QWidget):
             l_title_yomi = [line for line in lines_strip if '<meta refines="#title" property="file-as">' in line]
             if l_title_yomi != []:
                 title_yomi = l_title_yomi[0]
-                title_yomi = title_yomi.replace('<meta refines="#title" property="file-as">','').replace('</meta>','')
+                title_yomi = title_yomi.replace('<meta refines="#title" property="file-as">', '').replace('</meta>', '')
             else:
                 title_yomi = ''
 
@@ -200,12 +200,12 @@ class UI(QWidget):
             l_creator1 = [line for line in lines_strip if '<dc:creator id="creator01">' in line]
             if l_creator1 != []:
                 creator_1 = l_creator1[0]
-                creator_1 = creator_1.replace('<dc:creator id="creator01">','').replace('</dc:creator>','')
+                creator_1 = creator_1.replace('<dc:creator id="creator01">', '').replace('</dc:creator>', '')
                 creator.append(creator_1)
             l_creator2 = [line for line in lines_strip if '<dc:creator id="creator02">' in line]
             if l_creator2 != []:
                 creator_2 = l_creator2[0]
-                creator_2 = creator_2.replace('<dc:creator id="creator02">','').replace('</dc:creator>','')
+                creator_2 = creator_2.replace('<dc:creator id="creator02">', '').replace('</dc:creator>', '')
                 creator.append(creator_2)
 
 
@@ -214,16 +214,16 @@ class UI(QWidget):
             l_creator_yomi = [line for line in lines_strip if '<meta refines="#creator01" property="file-as">' in line]
             if l_creator_yomi != []:
                 creator_yomi1 = l_creator_yomi[0]
-                creator_yomi1 = creator_yomi1.replace('<meta refines="#creator01" property="file-as">','').replace('</meta>','')
+                creator_yomi1 = creator_yomi1.replace('<meta refines="#creator01" property="file-as">', '').replace('</meta>', '')
             else:
                 creator_yomi1 = ""
             l_creator_yomi = [line for line in lines_strip if '<meta refines="#creator02" property="file-as">' in line]
             if l_creator_yomi != []:
                 creator_yomi2 = l_creator_yomi[0]
-                creator_yomi2 = creator_yomi2.replace('<meta refines="#creator02" property="file-as">','').replace('</meta>','')
+                creator_yomi2 = creator_yomi2.replace('<meta refines="#creator02" property="file-as">', '').replace('</meta>', '')
             else:
                 creator_yomi2 = ""
-            
+
             #####################
 
             l_description = [line for line in lines_strip if 'dc:description' in line]
@@ -232,7 +232,7 @@ class UI(QWidget):
                 description = description.replace('<dc:description>', '').replace('</dc:description>', '')
             else:
                 description = ""
-            
+
             #####################
 
             l_publisher = [line for line in lines_strip if 'dc:publisher' in line]
@@ -265,7 +265,7 @@ class UI(QWidget):
             self.standard_opf_text.setText(path)
             self.publisher_text.setText(publisher)
             self.publisher_yomi_text.setText(publisher_yomi)
-    
+
     def change(self):
         path = self.standard_opf_text.text()
         title = self.title_text.text()
@@ -277,15 +277,17 @@ class UI(QWidget):
         publisher = self.publisher_text.text()
         publisher_yomi = self.publisher_yomi_text.text()
         description = self.description_text.toPlainText()
-        change_standard_opf.change_standard_opf(path,title,title_yomi,author1,author1_yomi,author2,author2_yomi,publisher,publisher_yomi,description)
+        change_standard_opf.change_standard_opf(path, title, title_yomi, author1, author1_yomi, author2, author2_yomi, publisher, publisher_yomi, description)
         QMessageBox.question(self, "Message", "Changed!!", QMessageBox.Ok, QMessageBox.Ok)
+
     def search_kobo(self):
         title = self.title_text.text()
-        b = bytes (title, 'eucjp')
+        b = bytes(title, 'eucjp')
         c = str(b)
-        c = c.lstrip('b').replace(r'\x','%').strip("\'")
+        c = c.lstrip('b').replace(r'\x', '%').strip("\'")
         url = 'https://books.rakuten.co.jp/search/nm?sv=30&h=30&o=0&v=2&spv=2&s=1&e=&b=1&g=101&sitem=' + c + '&x=0&y=0'
         webbrowser.open(url)
+
     def onChanged(self):
         maindata.title = self.title_text.text()
 
@@ -296,6 +298,7 @@ def main():
     mainwindow = MainWindow()
     mainwindow.show()
     sys.exit(app.exec_())
+
 
 if __name__ == "__main__":
     main()
