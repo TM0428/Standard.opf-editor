@@ -40,7 +40,7 @@ class MainWindow(QMainWindow):
         exitButton = QAction(QIcon("public/icon/exit-24-32.png"), "Exit", self)
         exitButton.setShortcut("Ctrl+Q")
         exitButton.setStatusTip("Exit application")
-        exitButton.triggered.connect(self.close)
+        exitButton.triggered.connect(QApplication.instance().quit)
         versionbutton = QAction("バージョン", self)
         versionbutton.triggered.connect(self.versiontab)
         fileMenu.addAction(dirbutton)
@@ -84,9 +84,10 @@ class MainWindow(QMainWindow):
 
 
     def versiontab(self):
-        dialog = QMessageBox(parent=self, text="1.0.0 beta")
+        dialog = QMessageBox(parent=self)
+        dialog.setWindowTitle("version")
+        dialog.setText("0.1.0 beta")
         dialog.setIcon(QMessageBox.Icon.Information)
-        dialog.setWindowTitle("versions")
         dialog.exec()   # Stores the return value for the button pressed
 
 
