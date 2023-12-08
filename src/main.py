@@ -202,6 +202,12 @@ class bodyUI(QWidget):
         self.scroll_layout.addWidget(new_layout)
 
     def set_data(self, path: str):
+        # Init
+        print(self.scroll_layout.count())
+        for i in range(self.scroll_layout.count()):
+            self.scroll_layout.itemAt(i).widget().deleteLater()
+        self.metadata_contents = []
+
         # print(path)
         self.path = path
         self.book = read_epub(path)

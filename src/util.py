@@ -78,19 +78,21 @@ class ExtendedEpubNav(ExtendedEpubHtml):
 
 
 class ExtendedEpubWriter(EpubWriter):
+    book: ExtendedEpubBook
+
     def _write_opf_spine(self, root, ncx_id):
-        spine_attributes = {"toc": ncx_id or "ncx"}
+        spine_attributes: Dict = {"toc": ncx_id or "ncx"}
         if self.book.direction and self.options["spine_direction"]:
             spine_attributes["page-progression-direction"] = self.book.direction
 
-        spine = etree.SubElement(root, "spine", spine_attributes)
+        spine = etree.SubElement(root, "spine", spine_attributes, None)
 
         for _item in self.book.spine:
             # this is for now
             # later we should be able to fetch things from tuple
 
             is_linear = True
-            opts: Dict[str, str]
+            opts: Dict[str, str] = {}
             if isinstance(_item, tuple):
                 item = _item[0]
 
@@ -100,38 +102,45 @@ class ExtendedEpubWriter(EpubWriter):
             elif isinstance(_item, dict):
                 opts = _item
             else:
-                item = _item
+                item: EpubItem = _item
                 if isinstance(item, EpubHtml):
-                    opts = {"idref": item.get_id()}
+                    # opts = {"idref": item.get_id()}
+                    # もしitem.get_id()がNoneの場合、idrefは""になる
+                    opts = {"idref": item.get_id() or ""}
 
                     if not item.is_linear or not is_linear:
                         opts["linear"] = "no"
                 elif isinstance(item, EpubItem):
-                    opts = {"idref": item.get_id()}
+                    opts = {"idref": item.get_id() or ""}
 
                     if not item.is_linear or not is_linear:
                         opts["linear"] = "no"
                 else:
                     opts = {"idref": item}
 
-            try:
-                itm = self.book.get_item_with_id(item)
+                try:
+                    itm = self.book.get_item_with_id(item)
 
-                if not itm.is_linear or not is_linear:
-                    opts["linear"] = "no"
-                elif is_linear:
-                    opts["linear"] = "yes"
-            except BaseException:
-                pass
+                    if not itm.is_linear or not is_linear:
+                        opts["linear"] = "no"
+                    elif is_linear:
+                        opts["linear"] = "yes"
+                except BaseException:
+                    pass
             print(opts)
 
-            etree.SubElement(spine, "itemref", opts)
+            etree.SubElement(spine, "itemref", opts, None)
 
 
 class ExtendedEpubReader(EpubReader):
     def __init__(self, epub_file_name, options=None):
         super().__init__(epub_file_name, options)
         self.book = ExtendedEpubBook()
+
+    def load(self) -> ExtendedEpubBook:
+        self._load()
+
+        return self.book
 
     def _load_manifest(self):
         for r in self.container.find("{%s}%s" % (NAMESPACES["OPF"], "manifest")):
