@@ -1,12 +1,27 @@
 import sys
 import os
-from PyQt6.QtWidgets import (QApplication, QMainWindow, QMessageBox, QFileDialog, QDialog, QVBoxLayout, QWidget, QScrollArea, QToolButton, QMenu, QHBoxLayout, QLayout, QPushButton)
+from PyQt6.QtWidgets import (
+    QApplication,
+    QMainWindow,
+    QMessageBox,
+    QFileDialog,
+    QDialog,
+    QVBoxLayout,
+    QWidget,
+    QScrollArea,
+    QToolButton,
+    QMenu,
+    QHBoxLayout,
+    QLayout,
+    QPushButton,
+)
 from PyQt6.QtGui import QAction, QIcon
 from contents import MetadataContents
 from typing import Final, Any, Dict, List, Optional
-from contents import (EpubFile, set_content, TextNotFoundException)
+from contents import EpubFile, set_content, TextNotFoundException
 import qdarktheme
 from util import read_epub, write_epub, ExtendedEpubBook
+
 
 class MainWindow(QMainWindow):
     title: Final[str] = "Epub Metadata Editor"
@@ -49,7 +64,13 @@ class MainWindow(QMainWindow):
         helpMenu.addAction(versionbutton)
 
     def epub_to_folder(self):
-        fname = QFileDialog.getOpenFileName(self, 'Open file', self.app_dir, "Epubファイル(*.epub)", options=QFileDialog.Option.DontUseNativeDialog)
+        fname = QFileDialog.getOpenFileName(
+            self,
+            "Open file",
+            self.app_dir,
+            "Epubファイル(*.epub)",
+            options=QFileDialog.Option.DontUseNativeDialog,
+        )
         root, ext = os.path.splitext(fname[0])
         if fname[0] == "" or ext != ".epub":
             return
@@ -58,13 +79,20 @@ class MainWindow(QMainWindow):
         bname, ext = os.path.splitext(basename)
         os.rename(fname[0], os.path.join(dirname, bname + ".zip"))
         from util import unzip
+
         unzip(dirname + "/" + bname, dirname + "/" + bname + ".zip")
         os.remove(dirname + "/" + bname + ".zip")
         QMessageBox.question(self, "Message", "Epubを解凍しました")
 
     def folder_to_epub(self):
         from contents import EpubFileDialog
-        fname = QFileDialog.getExistingDirectory(self, 'Open file', self.app_dir, options=QFileDialog.Option.DontUseNativeDialog)
+
+        fname = QFileDialog.getExistingDirectory(
+            self,
+            "Open file",
+            self.app_dir,
+            options=QFileDialog.Option.DontUseNativeDialog,
+        )
         if fname == "":
             return
         pathname = os.path.basename(fname)
@@ -78,22 +106,21 @@ class MainWindow(QMainWindow):
         else:
             t = os.path.basename(fname)
         from util import pack_epub
+
         pack_epub(fname, t + ".epub")
         QMessageBox.information(self, "Message", "Epubを作成しました")
-
-
 
     def versiontab(self):
         dialog = QMessageBox(parent=self)
         dialog.setWindowTitle("version")
         dialog.setText("0.1.0 beta")
         dialog.setIcon(QMessageBox.Icon.Information)
-        dialog.exec()   # Stores the return value for the button pressed
+        dialog.setWindowTitle("versions")
+        dialog.exec()  # Stores the return value for the button pressed
 
 
 # UIを作成しているウィンドウ
 class bodyUI(QWidget):
-
     parent: Any
 
     metadata_contents: List[MetadataContents] = []
@@ -106,12 +133,10 @@ class bodyUI(QWidget):
         self.initUI()
 
     def initUI(self):
-
         # self.change_button = QPushButton("Standard.opfを編集する", self)
         # self.change_button.clicked.connect(self.change)
         # self.search_button = QPushButton("koboで検索...", self)
         # self.search_button.clicked.connect(self.search_kobo)
-
 
         # 以下、レイアウトの作成
         layout = QVBoxLayout()
@@ -123,7 +148,6 @@ class bodyUI(QWidget):
         self.epub_file.setup_ui(epub_file_w)
         layout.addWidget(epub_file_w)
         self.epub_file.set_epub_selected_method(self.set_data)
-
 
         scroll_area = QScrollArea()
         scroll_area.setWidgetResizable(True)
@@ -150,9 +174,10 @@ class bodyUI(QWidget):
         action4 = QAction("Synopsis", add_content_button)
         action4.triggered.connect(lambda: self.make_content(action4.text()))
         action5 = QAction("Series", add_content_button)
-        action5.triggered.connect(lambda: self.make_content(action5.text()))
+        action6 = QAction("Identifier", add_content_button)
+        action6.triggered.connect(lambda: self.make_content(action6.text()))
 
-        for action in [action1, action2, action3, action4, action5]:
+        for action in [action1, action2, action3, action4, action5, action6]:
             add_content_menu.addAction(action)
 
         footer_layout: QLayout = QHBoxLayout()
@@ -215,8 +240,6 @@ class bodyUI(QWidget):
             else:
                 self.book.add_metadata("OPF", None, add_content[0], add_content[1])
 
-
-
         for content in self.metadata_contents:
             qw = QWidget()
             content.setup_ui(qw)
@@ -224,6 +247,7 @@ class bodyUI(QWidget):
 
     def exec_epub(self):
         from contents import EpubFileDialog
+
         if not self.book:
             return
         # self.book.reset_metadata("DC", "title")
@@ -255,7 +279,6 @@ class bodyUI(QWidget):
         write_epub(name="../" + t + ".epub", book=self.book)
         QMessageBox.information(self, "Message", "Epubを作成しました")
         print("End")
-
 
 
 def main():

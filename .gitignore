@@ -2,3 +2,5 @@ saekano1.epub
 __pycache__/
 ebooklib_test.py
 .vscode/
+data/
+*.epub
