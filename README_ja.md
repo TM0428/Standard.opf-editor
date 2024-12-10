@@ -1,10 +1,10 @@
 # epub metadata editor
 
-A tool to easily edit standard.opf
+standard.opf の編集を楽にするツール
 
 ![](image/2023-12-08_20h05_41.png)
 
-## Editable Metadata
+## 変更可能なメタデータ
 
 -   Title
 -   Author
@@ -17,11 +17,10 @@ A tool to easily edit standard.opf
 ## Install library
 
 ```command
-python -m venv venv
 pip install -r requirements.txt
 ```
 
-## Execute
+## Excute
 
 ```command
 python3 src/main.py
